@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ostroff.la/sitemap.xml
