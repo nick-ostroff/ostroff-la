@@ -157,7 +157,16 @@
       padding-left: 0.35rem;
       padding-right: 0.35rem;
     }
-    .links a .title-col { display: flex; flex-direction: column; gap: 0.15rem; }
+    .links a .link-left { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
+    .links a .fav {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      background: var(--rule);
+      object-fit: cover;
+    }
+    .links a .title-col { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
     .links a .title { color: var(--ink); }
     .links a .note {
       color: var(--ink-soft);
@@ -299,15 +308,24 @@
         <p class="bio">Twenty-plus years helping small businesses grow online. Founder of Pixelocity, building side projects under 99Apps, and writing about PPC, analytics, and AI-powered workflows.</p>
         <ul class="links">
           <li><a href="https://nickostroff.com">
-            <span class="title-col"><span class="title">Personal site</span><span class="note">Bio &amp; writing</span></span>
+            <span class="link-left">
+              <img class="fav" src="https://www.google.com/s2/favicons?domain=nickostroff.com&sz=64" alt="" width="20" height="20" loading="lazy" />
+              <span class="title-col"><span class="title">Personal site</span><span class="note">Bio &amp; writing</span></span>
+            </span>
             <span class="host mono">nickostroff.com <span class="arrow">→</span></span>
           </a></li>
           <li><a href="https://pixelocity.com">
-            <span class="title-col"><span class="title">Pixelocity</span><span class="note">Digital marketing agency</span></span>
+            <span class="link-left">
+              <img class="fav" src="https://www.google.com/s2/favicons?domain=pixelocity.com&sz=64" alt="" width="20" height="20" loading="lazy" />
+              <span class="title-col"><span class="title">Pixelocity</span><span class="note">Digital marketing agency</span></span>
+            </span>
             <span class="host mono">pixelocity.com <span class="arrow">→</span></span>
           </a></li>
           <li><a href="https://99apps.com">
-            <span class="title-col"><span class="title">99Apps</span><span class="note">Side projects</span></span>
+            <span class="link-left">
+              <img class="fav" src="https://www.google.com/s2/favicons?domain=99apps.com&sz=64" alt="" width="20" height="20" loading="lazy" />
+              <span class="title-col"><span class="title">99Apps</span><span class="note">Side projects</span></span>
+            </span>
             <span class="host mono">99apps.com <span class="arrow">→</span></span>
           </a></li>
         </ul>
@@ -322,7 +340,10 @@
         <p class="bio">Long-time Beverly Hills resident serving on the city's Planning Commission since 2018. Writes about civic life, urban planning, and keeps a personal archive of his newspaper work.</p>
         <ul class="links">
           <li><a href="https://peterostroff.com">
-            <span class="title-col"><span class="title">Personal site</span><span class="note">Blog &amp; archive</span></span>
+            <span class="link-left">
+              <img class="fav" src="https://www.google.com/s2/favicons?domain=peterostroff.com&sz=64" alt="" width="20" height="20" loading="lazy" />
+              <span class="title-col"><span class="title">Personal site</span><span class="note">Blog &amp; archive</span></span>
+            </span>
             <span class="host mono">peterostroff.com <span class="arrow">→</span></span>
           </a></li>
         </ul>
