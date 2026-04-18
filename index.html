@@ -276,6 +276,33 @@
       margin: 0;
       padding: 0.5rem 0;
     }
+    .feed-more {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--rule);
+      display: flex;
+      justify-content: center;
+    }
+    .feed-more button {
+      font: inherit;
+      font-family: 'Geist Mono', ui-monospace, monospace;
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      background: none;
+      border: 1px solid var(--rule-strong);
+      color: var(--ink);
+      padding: 0.55rem 1.1rem;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+    .feed-more button:hover {
+      background: var(--ink);
+      color: var(--bg-card);
+      border-color: var(--ink);
+    }
+    .feed-more[hidden] { display: none; }
     footer {
       text-align: center;
       margin-top: clamp(3rem, 6vw, 5rem);
@@ -355,6 +382,9 @@
       <ul class="joint-list" data-joint-list>
         <li class="feed-empty">Loading…</li>
       </ul>
+      <div class="feed-more" data-feed-more hidden>
+        <button type="button" data-feed-more-btn>See more →</button>
+      </div>
     </section>
 
     <script>
@@ -362,6 +392,9 @@
         const section = document.querySelector('[data-joint-feed]');
         if (!section) return;
         const list = section.querySelector('[data-joint-list]');
+        const moreWrap = section.querySelector('[data-feed-more]');
+        const moreBtn = section.querySelector('[data-feed-more-btn]');
+        const PAGE = 6;
         const fmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         const esc = (s) => String(s || '').replace(/[<>&"']/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;' }[c]));
         const formatDate = (raw) => {
@@ -369,30 +402,42 @@
           return isNaN(d) ? '' : fmt.format(d);
         };
         const firstName = (s) => (s || '').split(' ')[0];
+        const renderItem = (it) => {
+          const thumb = it.image
+            ? `<img class="post-thumb" src="${esc(it.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()" />`
+            : '';
+          const summary = it.summary ? `<p class="post-summary">${esc(it.summary)}</p>` : '';
+          const date = formatDate(it.date);
+          return `<li><a class="post" href="${esc(it.link)}" target="_blank" rel="noopener">
+            ${thumb}
+            <div class="post-body">
+              <div class="post-meta"><span class="post-author">${esc(firstName(it.author))}</span><span class="post-dot">·</span><span class="post-date mono">${date}</span></div>
+              <h3 class="post-title">${esc(it.title)}</h3>
+              ${summary}
+            </div>
+          </a></li>`;
+        };
+        let allItems = [];
+        let shown = 0;
+        const renderNextPage = () => {
+          const next = allItems.slice(shown, shown + PAGE);
+          const html = next.map(renderItem).join('');
+          if (shown === 0) list.innerHTML = html;
+          else list.insertAdjacentHTML('beforeend', html);
+          shown += next.length;
+          moreWrap.hidden = shown >= allItems.length;
+        };
         try {
           const res = await fetch('/api/feed?who=nick,peter');
           if (!res.ok) throw new Error('fetch failed');
           const data = await res.json();
-          const items = (data.items || []).slice(0, 6);
-          if (!items.length) {
+          allItems = data.items || [];
+          if (!allItems.length) {
             list.innerHTML = '<li class="feed-empty">No posts yet.</li>';
             return;
           }
-          list.innerHTML = items.map((it) => {
-            const thumb = it.image
-              ? `<img class="post-thumb" src="${esc(it.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()" />`
-              : '';
-            const summary = it.summary ? `<p class="post-summary">${esc(it.summary)}</p>` : '';
-            const date = formatDate(it.date);
-            return `<li><a class="post" href="${esc(it.link)}" target="_blank" rel="noopener">
-              ${thumb}
-              <div class="post-body">
-                <div class="post-meta"><span class="post-author">${esc(firstName(it.author))}</span><span class="post-dot">·</span><span class="post-date mono">${date}</span></div>
-                <h3 class="post-title">${esc(it.title)}</h3>
-                ${summary}
-              </div>
-            </a></li>`;
-          }).join('');
+          renderNextPage();
+          moreBtn.addEventListener('click', renderNextPage);
         } catch (e) {
           list.innerHTML = '<li class="feed-empty">Feed unavailable.</li>';
         }
