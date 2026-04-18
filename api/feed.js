@@ -92,7 +92,7 @@ export default async function handler(req, res) {
       return db - da;
     });
 
-    res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
+    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
     res.status(200).json({ items: merged });
   } catch (e) {
     res.status(502).json({ error: String(e.message || e) });
