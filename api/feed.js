@@ -1,6 +1,6 @@
-const FEEDS = {
-  nick: 'https://nickostroff.com/feed.xml',
-  peter: 'https://www.peterostroff.com/feed.xml',
+const PEOPLE = {
+  nick: { name: 'Nick Ostroff', feed: 'https://nickostroff.com/feed.xml' },
+  peter: { name: 'Peter Ostroff', feed: 'https://www.peterostroff.com/feed.xml' },
 };
 
 function decode(s) {
@@ -21,35 +21,79 @@ function pick(block, name) {
   return m ? decode(m[1]) : '';
 }
 
+function pickAttr(block, tag, attr) {
+  const re = new RegExp(`<${tag}\\b[^>]*\\b${attr}=["']([^"']+)["']`, 'i');
+  const m = block.match(re);
+  return m ? decode(m[1]) : '';
+}
+
+function stripHtml(s) {
+  return (s || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function truncate(s, n) {
+  if (!s) return '';
+  if (s.length <= n) return s;
+  return s.slice(0, n).replace(/\s+\S*$/, '').trim() + '…';
+}
+
+function findImage(block, description) {
+  return (
+    pickAttr(block, 'media:thumbnail', 'url') ||
+    pickAttr(block, 'media:content', 'url') ||
+    pickAttr(block, 'enclosure', 'url') ||
+    (description.match(/<img[^>]+src=["']([^"']+)["']/i)?.[1] ?? '')
+  );
+}
+
+function parseFeed(xml, person, key) {
+  const items = [];
+  const re = /<item\b[\s\S]*?<\/item>/gi;
+  let m;
+  while ((m = re.exec(xml)) !== null) {
+    const block = m[0];
+    const rawDesc = pick(block, 'description') || pick(block, 'content:encoded');
+    items.push({
+      title: pick(block, 'title'),
+      link: pick(block, 'link'),
+      date: pick(block, 'pubDate') || pick(block, 'dc:date'),
+      summary: truncate(stripHtml(rawDesc), 180),
+      image: findImage(block, rawDesc),
+      author: person.name,
+      authorKey: key,
+    });
+  }
+  return items;
+}
+
 export default async function handler(req, res) {
-  const who = String(req.query?.who || '');
-  const feedUrl = FEEDS[who];
-  if (!feedUrl) {
+  const raw = String(req.query?.who || '');
+  const keys = raw.split(',').map((s) => s.trim()).filter(Boolean);
+  if (!keys.length || keys.some((k) => !PEOPLE[k])) {
     res.status(400).json({ error: 'unknown source' });
     return;
   }
 
   try {
-    const upstream = await fetch(feedUrl, {
-      headers: { 'user-agent': 'ostroff.la/1.0 (+https://ostroff.la)' },
-    });
-    if (!upstream.ok) throw new Error(`upstream ${upstream.status}`);
-    const xml = await upstream.text();
+    const results = await Promise.all(
+      keys.map(async (key) => {
+        const person = PEOPLE[key];
+        const upstream = await fetch(person.feed, {
+          headers: { 'user-agent': 'ostroff.la/1.0 (+https://ostroff.la)' },
+        });
+        if (!upstream.ok) throw new Error(`${key}: upstream ${upstream.status}`);
+        return parseFeed(await upstream.text(), person, key);
+      }),
+    );
 
-    const items = [];
-    const re = /<item\b[\s\S]*?<\/item>/gi;
-    let m;
-    while ((m = re.exec(xml)) !== null && items.length < 5) {
-      const block = m[0];
-      items.push({
-        title: pick(block, 'title'),
-        link: pick(block, 'link'),
-        date: pick(block, 'pubDate') || pick(block, 'dc:date'),
-      });
-    }
+    const merged = results.flat().sort((a, b) => {
+      const da = new Date(a.date).getTime() || 0;
+      const db = new Date(b.date).getTime() || 0;
+      return db - da;
+    });
 
     res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
-    res.status(200).json({ items });
+    res.status(200).json({ items: merged });
   } catch (e) {
     res.status(502).json({ error: String(e.message || e) });
   }
