@@ -1,5 +1,6 @@
 const FEEDS = {
   nick: 'https://nickostroff.com/feed.xml',
+  peter: 'https://www.peterostroff.com/feed.xml',
 };
 
 function decode(s) {
