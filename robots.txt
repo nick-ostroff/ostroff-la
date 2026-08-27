@@ -1,4 +1,8 @@
 User-agent: *
 Allow: /
+Disallow: /trips/
+Disallow: /tickets/
+Disallow: /unlock/
+Disallow: /api/
 
 Sitemap: https://ostroff.la/sitemap.xml

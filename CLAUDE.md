@@ -10,28 +10,37 @@ Plain static HTML — no framework, no build step, no dependencies (`package.jso
 node dev-server.js   # local dev at http://localhost:4173 (PORT env var to override)
 ```
 
-`dev-server.js` serves static files from the repo root and emulates Vercel's serverless runtime for `api/*.js` (mocks `res.status()`/`res.json()` and populates `req.query`), so the feed works locally without the Vercel CLI.
+`dev-server.js` serves static files from the repo root (directories resolve to `index.html`) and emulates Vercel's serverless runtime for `api/*.js` (mocks `res.status()`/`res.json()` and populates `req.query`). `middleware.js` does NOT run locally, so `/trips/` and `/tickets/` are open on the dev server.
 
 ## Architecture
 
-- `index.html` — the entire site: markup, all CSS (inline `<style>`), and the feed-rendering JS (inline `<script>`). Two profile cards (Nick, Peter) plus a "Recent writing" section.
-- `api/feed.js` — the only serverless function. `GET /api/feed?who=nick,peter` fetches and merges RSS feeds:
-  - `nick` → https://nickostroff.com/feed.xml
-  - `peter` → https://www.peterostroff.com/feed.xml
+Design is the "Masthead" editorial system from the Claude Design project "Ostroff domain redesign": Newsreader (serif display/body), Archivo (caps labels), Libre Franklin (UI text); paper white, ink `#1a1815`, accents red `#a63d2f` (home), green `#3d6b4f` (Trips), gold `#8a6d2f` (Tickets). Light theme only.
 
-  Parses RSS with regex (no XML library), extracts title/link/date/summary/thumbnail, merges and sorts newest-first, returns JSON. Cached at the edge via `Cache-Control: s-maxage=60, stale-while-revalidate=300`. Unknown `who` keys return 400; upstream failures return 502.
-- Front-end fetches `/api/feed?who=nick,peter` on load and paginates client-side, 6 posts per "See more" click.
-- Static assets: `favicon.svg`, `images/` (portraits), `robots.txt`, `sitemap.xml`.
+- `assets/site.css` — the shared stylesheet for every page. Design tokens live in `:root`; `.page.section-trips` / `.page.section-tickets` swap `--accent` and add the colored top rule. Change colors/type here, not inline.
+- `index.html` — home: topline, masthead, nav, two profile columns, "Recent Writing" (feed-driven: 2 featured posts with images + thumb briefs, "More writing" paginates 4 at a time), and the two passcode cards for the family sections.
+- `trips/index.html`, `trips/japan/index.html` — family Trips section (static content drafted from the design; "Soon" rows are placeholders).
+- `tickets/index.html`, `tickets/cardinals/index.html` — family Tickets section (static data as of 2026-08-26; the Keep/List pills and "Record a sale" form are visual only, not wired up).
+- `unlock/index.html` — passcode prompt; reads `?next=` and `?err=`.
+- `api/feed.js` — `GET /api/feed?who=nick,peter` fetches and merges RSS feeds (`nick` → nickostroff.com/feed.xml, `peter` → peterostroff.com/feed.xml), regex-parsed, newest-first JSON, edge-cached `s-maxage=60, stale-while-revalidate=300`. Unknown `who` → 400; upstream failure → 502. Adding a source = add to the `PEOPLE` map.
+- `api/unlock.js` — `POST` with `code` + `next`; on match sets the `ostroff_family` cookie (1 year, HttpOnly) and 302s to `next` (only `/trips…` or `/tickets…` allowed); otherwise 302s back to `/unlock/?err=1`.
+- `middleware.js` — Vercel Routing Middleware on `/trips/*` and `/tickets/*`; redirects to `/unlock/` unless the cookie matches `FAMILY_TOKEN`.
+- Static assets: `favicon.svg`, `images/` (portraits), `robots.txt` (disallows the family sections, unlock, api), `sitemap.xml` (home only).
+
+## Environment variables (Vercel)
+
+- `FAMILY_PASSCODE` — what the family types to unlock Trips/Tickets.
+- `FAMILY_TOKEN` — random secret stored in the cookie. Rotate to log everyone out.
+
+Both must be set or the family sections stay locked (unlock always fails).
 
 ## Conventions & gotchas
 
-- **Design system lives in `:root` CSS variables** at the top of `index.html` (`--bg`, `--ink`, `--rule`, etc.) with a `prefers-color-scheme: dark` override block — change colors there, not inline. Fonts are Geist / Geist Mono from Google Fonts.
-- **Edit `index.html` directly** — there is no templating, bundling, or shared partials. Keep everything self-contained in that one file.
-- **Sitemap:** update `<lastmod>` in `sitemap.xml` when making meaningful content changes; add `<url>` entries if new pages are ever added.
-- **GTM is installed** (container `GTM-W48S46Z3`) — head snippet plus `<noscript>` iframe right after `<body>`. Preserve both when editing the head/body.
-- Adding a feed source = add an entry to the `PEOPLE` map in `api/feed.js` (RSS 2.0 `<item>` format expected).
-- This page intentionally uses a centered `max-width: 960px` wrap — it's a landing page, not an app; the global full-width rule doesn't apply here.
+- **GTM is installed** on the home page (container `GTM-W48S46Z3`) — head snippet plus `<noscript>` iframe right after `<body>`. Preserve both when editing `index.html`.
+- Family pages carry `<meta name="robots" content="noindex, nofollow">`; keep it on anything new under `/trips` or `/tickets`.
+- The design mocks reference `trips.ostroff.la` / `tickets.ostroff.la`; the site serves them as `/trips/` and `/tickets/` paths (labels kept for flavor). Subdomains would need Vercel domain config plus path rewrites.
+- **Sitemap:** update `<lastmod>` in `sitemap.xml` on meaningful home-page changes. Do not add the family pages.
+- This page intentionally uses a centered `max-width: 1080px` wrap — it's a landing page, not an app; the global full-width rule doesn't apply here.
 
 ## Deployment
 
-Vercel, zero config — static files served from the root, `api/feed.js` auto-deployed as a serverless function. Push to the default branch to deploy production.
+Vercel, zero config — static files served from the root, `api/*.js` auto-deployed as serverless functions, `middleware.js` as routing middleware. Push to `main` to deploy production.

@@ -13,440 +13,165 @@
   <title>Ostroff.LA — Nick & Peter Ostroff</title>
   <meta name="description" content="The Ostroff family in Los Angeles. Nick Ostroff, digital marketing consultant. Peter Ostroff, retired trial lawyer and Beverly Hills planning commissioner." />
   <meta property="og:title" content="Ostroff.LA" />
-  <meta property="og:description" content="Nick & Peter Ostroff — Los Angeles." />
+  <meta property="og:description" content="The Ostroffs, in Los Angeles." />
   <meta property="og:type" content="website" />
   <link rel="canonical" href="https://ostroff.la/" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --bg: #fafafa;
-      --bg-card: #ffffff;
-      --ink: #0a0a0a;
-      --ink-soft: #737373;
-      --ink-mute: #a3a3a3;
-      --rule: #ededed;
-      --rule-strong: #e5e5e5;
-      --accent: #0a0a0a;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #0a0a0a;
-        --bg-card: #141414;
-        --ink: #fafafa;
-        --ink-soft: #a3a3a3;
-        --ink-mute: #737373;
-        --rule: #262626;
-        --rule-strong: #333333;
-        --accent: #fafafa;
-      }
-    }
-    * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; }
-    body {
-      font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: var(--bg);
-      color: var(--ink);
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      line-height: 1.55;
-      font-feature-settings: 'ss01', 'cv11';
-    }
-    .mono {
-      font-family: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-    }
-    .wrap {
-      max-width: 960px;
-      margin: 0 auto;
-      padding: clamp(3rem, 7vw, 6rem) clamp(1.25rem, 4vw, 2.5rem) 3rem;
-    }
-    header {
-      text-align: center;
-      margin-bottom: clamp(3rem, 7vw, 5rem);
-    }
-    .mark {
-      font-family: 'Geist', sans-serif;
-      font-weight: 500;
-      font-size: clamp(3rem, 8vw, 5.5rem);
-      letter-spacing: -0.055em;
-      margin: 0;
-      line-height: 0.95;
-      color: var(--ink);
-    }
-    .mark .dim { color: var(--ink-mute); font-weight: 400; }
-    .tag {
-      margin-top: 1.25rem;
-      color: var(--ink-soft);
-      font-size: 0.95rem;
-      letter-spacing: -0.005em;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1rem;
-    }
-    @media (min-width: 760px) {
-      .grid { grid-template-columns: 1fr 1fr; gap: 1.25rem; }
-    }
-    .card {
-      background: var(--bg-card);
-      border: 1px solid var(--rule);
-      border-radius: 14px;
-      padding: clamp(1.5rem, 3vw, 2rem);
-      display: flex;
-      flex-direction: column;
-      transition: border-color 0.2s ease;
-    }
-    .card:hover { border-color: var(--rule-strong); }
-    .portrait-wrap {
-      margin-bottom: 1.25rem;
-    }
-    .portrait {
-      width: 88px;
-      height: 88px;
-      border-radius: 50%;
-      object-fit: cover;
-      background: var(--rule);
-      display: block;
-    }
-    .name {
-      font-family: 'Geist', sans-serif;
-      font-weight: 600;
-      font-size: 1.5rem;
-      letter-spacing: -0.025em;
-      margin: 0 0 0.35rem;
-    }
-    .role {
-      color: var(--ink-soft);
-      font-size: 0.875rem;
-      margin: 0 0 1rem;
-      letter-spacing: -0.005em;
-    }
-    .bio {
-      color: var(--ink);
-      font-size: 0.95rem;
-      margin: 0 0 1.5rem;
-      letter-spacing: -0.005em;
-    }
-    .links {
-      list-style: none;
-      padding: 0;
-      margin: auto 0 0;
-      display: flex;
-      flex-direction: column;
-      border-top: 1px solid var(--rule);
-    }
-    .links a {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 1rem;
-      padding: 0.85rem 0;
-      border-bottom: 1px solid var(--rule);
-      color: var(--ink);
-      text-decoration: none;
-      font-weight: 500;
-      font-size: 0.95rem;
-      letter-spacing: -0.005em;
-      transition: color 0.15s ease, padding 0.15s ease;
-    }
-    .links a:hover {
-      padding-left: 0.35rem;
-      padding-right: 0.35rem;
-    }
-    .links a .link-left { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
-    .links a .fav {
-      width: 20px;
-      height: 20px;
-      border-radius: 4px;
-      flex-shrink: 0;
-      background: var(--rule);
-      object-fit: cover;
-    }
-    .links a .title-col { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
-    .links a .title { color: var(--ink); }
-    .links a .note {
-      color: var(--ink-soft);
-      font-weight: 400;
-      font-size: 0.78rem;
-      letter-spacing: 0;
-    }
-    .links a .host {
-      color: var(--ink-soft);
-      font-weight: 400;
-      font-size: 0.8rem;
-      white-space: nowrap;
-      transition: color 0.15s ease;
-    }
-    .links a:hover .host { color: var(--ink); }
-    .links a .arrow { display: inline-block; transition: transform 0.15s ease; }
-    .links a:hover .arrow { transform: translateX(2px); }
-    .card-joint {
-      margin-top: 1.25rem;
-    }
-    .feed-label {
-      font-size: 0.72rem;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--ink-soft);
-      margin: 0 0 1rem;
-    }
-    .joint-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-    }
-    .joint-list li { margin: 0; }
-    .post {
-      display: flex;
-      gap: 1rem;
-      padding: 1.25rem 0;
-      border-top: 1px solid var(--rule);
-      color: var(--ink);
-      text-decoration: none;
-      transition: opacity 0.15s ease;
-    }
-    .joint-list li:first-child .post { border-top: none; padding-top: 0.25rem; }
-    .post:hover { opacity: 0.72; }
-    .post-thumb {
-      width: 96px;
-      height: 96px;
-      object-fit: cover;
-      border-radius: 10px;
-      background: var(--rule);
-      display: block;
-      flex-shrink: 0;
-    }
-    .post-body {
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-      min-width: 0;
-      flex: 1;
-    }
-    .post-meta {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.7rem;
-      color: var(--ink-mute);
-    }
-    .post-author {
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      font-weight: 500;
-      color: var(--ink-soft);
-    }
-    .post-dot { color: var(--ink-mute); }
-    .post-date { color: var(--ink-mute); }
-    .post-title {
-      margin: 0;
-      font-size: 1.025rem;
-      font-weight: 500;
-      letter-spacing: -0.015em;
-      line-height: 1.3;
-      color: var(--ink);
-    }
-    .post-summary {
-      margin: 0;
-      font-size: 0.875rem;
-      color: var(--ink-soft);
-      line-height: 1.5;
-      letter-spacing: -0.003em;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-    @media (max-width: 520px) {
-      .post { gap: 0.85rem; }
-      .post-thumb { width: 72px; height: 72px; border-radius: 8px; }
-      .post-title { font-size: 0.975rem; }
-      .post-summary { -webkit-line-clamp: 2; }
-    }
-    .feed-empty {
-      font-size: 0.85rem;
-      color: var(--ink-mute);
-      margin: 0;
-      padding: 0.5rem 0;
-    }
-    .feed-more {
-      margin-top: 1rem;
-      padding-top: 1rem;
-      border-top: 1px solid var(--rule);
-      display: flex;
-      justify-content: center;
-    }
-    .feed-more button {
-      font: inherit;
-      font-family: 'Geist Mono', ui-monospace, monospace;
-      font-size: 0.8rem;
-      font-weight: 500;
-      letter-spacing: 0.02em;
-      background: none;
-      border: 1px solid var(--rule-strong);
-      color: var(--ink);
-      padding: 0.55rem 1.1rem;
-      border-radius: 999px;
-      cursor: pointer;
-      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-    }
-    .feed-more button:hover {
-      background: var(--ink);
-      color: var(--bg-card);
-      border-color: var(--ink);
-    }
-    .feed-more[hidden] { display: none; }
-    footer {
-      text-align: center;
-      margin-top: clamp(3rem, 6vw, 5rem);
-      color: var(--ink-soft);
-      font-size: 0.85rem;
-      letter-spacing: -0.005em;
-    }
-    footer a { color: var(--ink); text-decoration: none; }
-    footer a:hover { color: var(--ink-soft); }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..800;1,6..72,400..800&family=Archivo:wght@400..700&family=Libre+Franklin:wght@300..700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/site.css" />
 </head>
 <body>
   <!-- Google Tag Manager (noscript) -->
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W48S46Z3"
   height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
-  <div class="wrap">
-    <header>
-      <h1 class="mark">ostroff<span class="dim">.la</span></h1>
-      <p class="tag">The Ostroffs, in Los Angeles.</p>
+  <div class="page">
+    <div class="topline eyebrow">
+      <span>Los Angeles, California</span>
+      <span data-today></span>
+      <span>Est. two generations</span>
+    </div>
+
+    <header class="masthead">
+      <h1 class="title">Ostroff<span class="dot">.</span>la</h1>
+      <p class="tagline">The Ostroffs, in Los Angeles.</p>
     </header>
 
-    <main class="grid">
-      <article class="card">
-        <div class="portrait-wrap">
-          <img class="portrait" src="images/nick.png" alt="Nick Ostroff" width="88" height="88" />
-        </div>
-        <h2 class="name">Nick Ostroff</h2>
-        <p class="role">Digital marketing consultant · Manhattan Beach</p>
-        <p class="bio">Twenty-plus years helping small businesses grow online. Founder of Pixelocity, building side projects under 99Apps, and writing about PPC, analytics, and AI-powered workflows.</p>
-        <ul class="links">
-          <li><a href="https://nickostroff.com">
-            <span class="link-left">
-              <img class="fav" src="https://www.google.com/s2/favicons?domain=nickostroff.com&sz=64" alt="" width="20" height="20" loading="lazy" />
-              <span class="title-col"><span class="title">Personal site</span><span class="note">Bio &amp; writing</span></span>
-            </span>
-            <span class="host mono">nickostroff.com <span class="arrow">→</span></span>
-          </a></li>
-          <li><a href="https://pixelocity.com">
-            <span class="link-left">
-              <img class="fav" src="https://www.google.com/s2/favicons?domain=pixelocity.com&sz=64" alt="" width="20" height="20" loading="lazy" />
-              <span class="title-col"><span class="title">Pixelocity</span><span class="note">Digital marketing agency</span></span>
-            </span>
-            <span class="host mono">pixelocity.com <span class="arrow">→</span></span>
-          </a></li>
-          <li><a href="https://99apps.com">
-            <span class="link-left">
-              <img class="fav" src="https://99apps.com/99-apps-logo-black.png" alt="" width="20" height="20" loading="lazy" />
-              <span class="title-col"><span class="title">99Apps</span><span class="note">Side projects</span></span>
-            </span>
-            <span class="host mono">99apps.com <span class="arrow">→</span></span>
-          </a></li>
-        </ul>
-      </article>
+    <nav class="nav" aria-label="Site">
+      <a href="/" aria-current="page">Home</a>
+      <a href="/trips/">Trips <svg width="9" height="11" viewBox="0 0 9 11" aria-hidden="true"><rect x="0.5" y="4.5" width="8" height="6" rx="1" fill="none" stroke="currentColor"/><path d="M2.5 4.5V3a2 2 0 0 1 4 0v1.5" fill="none" stroke="currentColor"/></svg></a>
+      <a href="/tickets/">Tickets <svg width="9" height="11" viewBox="0 0 9 11" aria-hidden="true"><rect x="0.5" y="4.5" width="8" height="6" rx="1" fill="none" stroke="currentColor"/><path d="M2.5 4.5V3a2 2 0 0 1 4 0v1.5" fill="none" stroke="currentColor"/></svg></a>
+    </nav>
 
-      <article class="card">
-        <div class="portrait-wrap">
-          <img class="portrait" src="images/peter.jpeg" alt="Peter Ostroff" width="88" height="88" />
+    <main class="people">
+      <article>
+        <div class="person-head">
+          <img class="portrait" src="/images/nick.png" alt="Nick Ostroff" width="76" height="76" />
+          <div>
+            <h2 class="person-name">Nick Ostroff</h2>
+            <div class="kicker">Digital Marketing · Manhattan Beach</div>
+          </div>
         </div>
-        <h2 class="name">Peter Ostroff</h2>
-        <p class="role">Retired trial lawyer · Beverly Hills</p>
-        <p class="bio">Long-time Beverly Hills resident serving on the city's Planning Commission since 2018. Writes about civic life, urban planning, and keeps a personal archive of his newspaper work.</p>
-        <ul class="links">
-          <li><a href="https://peterostroff.com">
-            <span class="link-left">
-              <img class="fav" src="https://www.google.com/s2/favicons?domain=peterostroff.com&sz=64" alt="" width="20" height="20" loading="lazy" />
-              <span class="title-col"><span class="title">Personal site</span><span class="note">Blog &amp; archive</span></span>
-            </span>
-            <span class="host mono">peterostroff.com <span class="arrow">→</span></span>
-          </a></li>
-        </ul>
+        <p class="prose">Twenty-plus years helping small businesses grow online. Founder of Pixelocity, building side projects under 99Apps, and writing about PPC, analytics, and AI-powered workflows.</p>
+        <div class="linkrows">
+          <a href="https://nickostroff.com"><span>Personal site</span><span class="host">nickostroff.com →</span></a>
+          <a href="https://pixelocity.com"><span>Pixelocity</span><span class="host">pixelocity.com →</span></a>
+          <a href="https://99apps.com"><span>99Apps</span><span class="host">99apps.com →</span></a>
+        </div>
+      </article>
+      <div class="vr" aria-hidden="true"></div>
+      <article>
+        <div class="person-head">
+          <img class="portrait" src="/images/peter.jpeg" alt="Peter Ostroff" width="76" height="76" />
+          <div>
+            <h2 class="person-name">Peter Ostroff</h2>
+            <div class="kicker">Retired Trial Lawyer · Beverly Hills</div>
+          </div>
+        </div>
+        <p class="prose">Long-time Beverly Hills resident serving on the city's Planning Commission since 2018. Writes about civic life, urban planning, and keeps a personal archive of his newspaper work.</p>
+        <div class="linkrows">
+          <a href="https://peterostroff.com"><span>Personal site</span><span class="host">peterostroff.com →</span></a>
+        </div>
       </article>
     </main>
 
-    <section class="card card-joint" aria-label="Recent writing from Nick and Peter" data-joint-feed>
-      <p class="feed-label">Recent writing</p>
-      <ul class="joint-list" data-joint-list>
-        <li class="feed-empty">Loading…</li>
-      </ul>
-      <div class="feed-more" data-feed-more hidden>
-        <button type="button" data-feed-more-btn>See more →</button>
+    <section class="writing" aria-label="Recent writing from Nick and Peter" data-feed>
+      <div class="label">Recent Writing</div>
+      <div class="features" data-features><p class="feed-empty">Loading…</p></div>
+      <div class="briefs" data-briefs hidden></div>
+      <div class="more" data-more hidden>
+        <button type="button" class="btn" data-more-btn>More writing →</button>
       </div>
     </section>
 
-    <script>
-      (async () => {
-        const section = document.querySelector('[data-joint-feed]');
-        if (!section) return;
-        const list = section.querySelector('[data-joint-list]');
-        const moreWrap = section.querySelector('[data-feed-more]');
-        const moreBtn = section.querySelector('[data-feed-more-btn]');
-        const PAGE = 6;
-        const fmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-        const esc = (s) => String(s || '').replace(/[<>&"']/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;' }[c]));
-        const formatDate = (raw) => {
-          const d = new Date(raw);
-          return isNaN(d) ? '' : fmt.format(d);
-        };
-        const firstName = (s) => (s || '').split(' ')[0];
-        const renderItem = (it) => {
-          const thumb = it.image
-            ? `<img class="post-thumb" src="${esc(it.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()" />`
-            : '';
-          const summary = it.summary ? `<p class="post-summary">${esc(it.summary)}</p>` : '';
-          const date = formatDate(it.date);
-          return `<li><a class="post" href="${esc(it.link)}" target="_blank" rel="noopener">
-            ${thumb}
-            <div class="post-body">
-              <div class="post-meta"><span class="post-author">${esc(firstName(it.author))}</span><span class="post-dot">·</span><span class="post-date mono">${date}</span></div>
-              <h3 class="post-title">${esc(it.title)}</h3>
-              ${summary}
-            </div>
-          </a></li>`;
-        };
-        let allItems = [];
-        let shown = 0;
-        const renderNextPage = () => {
-          const next = allItems.slice(shown, shown + PAGE);
-          const html = next.map(renderItem).join('');
-          if (shown === 0) list.innerHTML = html;
-          else list.insertAdjacentHTML('beforeend', html);
-          shown += next.length;
-          moreWrap.hidden = shown >= allItems.length;
-        };
-        try {
-          const res = await fetch('/api/feed?who=nick,peter');
-          if (!res.ok) throw new Error('fetch failed');
-          const data = await res.json();
-          allItems = data.items || [];
-          if (!allItems.length) {
-            list.innerHTML = '<li class="feed-empty">No posts yet.</li>';
-            return;
-          }
-          renderNextPage();
-          moreBtn.addEventListener('click', renderNextPage);
-        } catch (e) {
-          list.innerHTML = '<li class="feed-empty">Feed unavailable.</li>';
-        }
-      })();
-    </script>
+    <section class="family" aria-label="Family sections">
+      <div class="label">Family Sections · Passcode Required</div>
+      <div class="family-grid">
+        <div class="family-card trips">
+          <h3>trips.ostroff.la</h3>
+          <p>Itineraries, ideas by month, family travel drafts.</p>
+          <form method="post" action="/api/unlock">
+            <input type="hidden" name="next" value="/trips/" />
+            <input type="password" name="code" placeholder="· · · ·" autocomplete="off" aria-label="Passcode for Trips" required />
+            <button type="submit" class="btn solid">Enter code</button>
+          </form>
+        </div>
+        <div class="family-card tickets">
+          <h3>tickets.ostroff.la</h3>
+          <p>Season seats, asks, and sale tracking at SoFi.</p>
+          <form method="post" action="/api/unlock">
+            <input type="hidden" name="next" value="/tickets/" />
+            <input type="password" name="code" placeholder="· · · ·" autocomplete="off" aria-label="Passcode for Tickets" required />
+            <button type="submit" class="btn solid">Enter code</button>
+          </form>
+        </div>
+      </div>
+    </section>
 
-    <footer>
-      <p><a href="mailto:nick@ostroff.la" class="mono">nick@ostroff.la</a> · <a href="mailto:petero@ostroff.la" class="mono">petero@ostroff.la</a></p>
+    <footer class="foot eyebrow">
+      <span>ostroff.la</span>
+      <span><a href="mailto:nick@ostroff.la">nick@</a> · <a href="mailto:petero@ostroff.la">petero@</a></span>
+      <span>Los Angeles</span>
     </footer>
   </div>
+
+  <script>
+    (() => {
+      const today = document.querySelector('[data-today]');
+      if (today) today.textContent = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).format(new Date());
+    })();
+
+    (async () => {
+      const section = document.querySelector('[data-feed]');
+      if (!section) return;
+      const features = section.querySelector('[data-features]');
+      const briefs = section.querySelector('[data-briefs]');
+      const moreWrap = section.querySelector('[data-more]');
+      const moreBtn = section.querySelector('[data-more-btn]');
+      const FEATURED = 2;
+      const PAGE = 4;
+      const fmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const esc = (s) => String(s || '').replace(/[<>&"']/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;' }[c]));
+      const formatDate = (raw) => { const d = new Date(raw); return isNaN(d) ? '' : fmt.format(d); };
+      const firstName = (s) => (s || '').split(' ')[0];
+      const meta = (it) => `${esc(firstName(it.author))} · ${formatDate(it.date)}`;
+
+      const renderFeature = (it) => `<a class="feature" href="${esc(it.link)}" target="_blank" rel="noopener">
+          ${it.image ? `<img class="img" src="${esc(it.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()" />` : ''}
+          <div class="kicker red">${meta(it)}</div>
+          <h3>${esc(it.title)}</h3>
+          ${it.summary ? `<p>${esc(it.summary)}</p>` : ''}
+        </a>`;
+      const renderBrief = (it) => `<a class="brief" href="${esc(it.link)}" target="_blank" rel="noopener">
+          ${it.image ? `<img class="thumb" src="${esc(it.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()" />` : ''}
+          <div><div class="kicker">${meta(it)}</div><h3>${esc(it.title)}</h3></div>
+        </a>`;
+
+      let items = [];
+      let shown = 0;
+      const renderNext = () => {
+        const next = items.slice(shown, shown + PAGE);
+        briefs.insertAdjacentHTML('beforeend', next.map(renderBrief).join(''));
+        briefs.hidden = false;
+        shown += next.length;
+        moreWrap.hidden = shown >= items.length;
+      };
+      try {
+        const res = await fetch('/api/feed?who=nick,peter');
+        if (!res.ok) throw new Error('fetch failed');
+        const data = await res.json();
+        const all = data.items || [];
+        if (!all.length) { features.innerHTML = '<p class="feed-empty">No posts yet.</p>'; return; }
+        features.innerHTML = all.slice(0, FEATURED).map(renderFeature).join('');
+        items = all.slice(FEATURED);
+        if (items.length) { renderNext(); moreBtn.addEventListener('click', renderNext); }
+      } catch (e) {
+        features.innerHTML = '<p class="feed-empty">Feed unavailable.</p>';
+      }
+    })();
+  </script>
 </body>
 </html>

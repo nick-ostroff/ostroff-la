@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trips — Ostroff.LA</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..800;1,6..72,400..800&family=Archivo:wght@400..700&family=Libre+Franklin:wght@300..700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/site.css" />
+</head>
+<body>
+  <div class="page section-trips">
+    <div class="topline eyebrow">
+      <span>Family Section · Unlocked</span>
+      <span data-today></span>
+      <span style="color:var(--green)">trips.ostroff.la</span>
+    </div>
+
+    <header class="masthead compact">
+      <h1 class="title">Trips<span class="dot">.</span></h1>
+      <p class="tagline">Family travel — drafts, ideas, nothing booked.</p>
+    </header>
+
+    <nav class="nav" aria-label="Site">
+      <a href="/">Home</a>
+      <a href="/trips/" aria-current="page">Trips</a>
+      <a href="/tickets/">Tickets <svg width="9" height="11" viewBox="0 0 9 11" aria-hidden="true"><rect x="0.5" y="4.5" width="8" height="6" rx="1" fill="none" stroke="currentColor"/><path d="M2.5 4.5V3a2 2 0 0 1 4 0v1.5" fill="none" stroke="currentColor"/></svg></a>
+    </nav>
+
+    <main class="people" style="border-bottom:0; padding:36px 0">
+      <article>
+        <div class="person-head">
+          <img class="portrait sm" src="/images/nick.png" alt="" width="56" height="56" />
+          <div>
+            <h2 class="person-name" style="font-size:27px">Dad &amp; Nick</h2>
+            <div class="kicker">Sports Trips · Tokyo May 2027</div>
+          </div>
+        </div>
+        <p class="prose" style="font-size:15.5px">Japan in May 2027: one basho day, then two weeks through the country. Other sports ideas by month. Nothing booked.</p>
+        <div class="rows">
+          <a href="/trips/japan/"><div><span class="t">Japan</span><span class="sub">May 2027 · Sumo + 2 weeks</span></div><span class="go">Open →</span></a>
+          <div><div><span class="t">Ideas by month</span><span class="sub">Other sports trips</span></div><span class="go muted">Soon</span></div>
+        </div>
+      </article>
+      <div class="vr" aria-hidden="true"></div>
+      <article>
+        <div class="person-head">
+          <img class="portrait sm" src="/images/nick.png" alt="" width="56" height="56" />
+          <div>
+            <h2 class="person-name" style="font-size:27px">Natalie &amp; Nick</h2>
+            <div class="kicker">Short Trip With Mom</div>
+          </div>
+        </div>
+        <p class="prose" style="font-size:15.5px">San Diego–Mexico cruise is the live idea. Hawaii, Africa, and a longer Caribbean are still notes. Nothing reserved.</p>
+        <div class="rows">
+          <div><div><span class="t">SD–Mexico cruise</span><span class="sub">Serenade of the Seas</span></div><span class="go muted">Soon</span></div>
+          <div><div><span class="t">Other ideas</span><span class="sub">Hawaii · Africa · Caribbean</span></div><span class="go muted">Soon</span></div>
+        </div>
+      </article>
+    </main>
+
+    <footer class="foot eyebrow" style="margin-top:0">
+      <span>Draft · Nothing booked</span>
+      <span>Miles — Aug 20, 2026</span>
+      <span>ostroff.la</span>
+    </footer>
+  </div>
+  <script>
+    const t = document.querySelector('[data-today]');
+    if (t) t.textContent = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).format(new Date());
+  </script>
+</body>
+</html>
