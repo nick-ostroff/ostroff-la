@@ -229,7 +229,8 @@ button { font: inherit; cursor: pointer; }
 .feature .img {
   width: 100%;
   aspect-ratio: 16 / 10;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: top center;
   background: var(--panel);
   border: 1px solid var(--rule);
 }
@@ -253,7 +254,7 @@ button { font: inherit; cursor: pointer; }
   padding-bottom: 14px;
   color: inherit;
 }
-.brief .thumb { width: 96px; height: 64px; object-fit: cover; flex: none; background: var(--panel); border: 1px solid var(--rule); }
+.brief .thumb { width: 96px; height: 64px; object-fit: cover; object-position: top; flex: none; background: var(--panel); border: 1px solid var(--rule); }
 .brief .kicker { font-weight: 600; font-size: 11px; color: var(--red); }
 .brief h3 { font-family: var(--serif); font-weight: 600; font-size: 18px; line-height: 1.25; margin-top: 4px; }
 .feed-empty { font-family: var(--serif); font-style: italic; color: var(--ink-mute); }
