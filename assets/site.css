@@ -400,6 +400,33 @@ button { font: inherit; cursor: pointer; }
 .leg p { font-family: var(--serif); font-size: 15px; line-height: 1.6; color: var(--ink-soft); margin-bottom: 14px; }
 .leg p:last-child { margin-bottom: 0; }
 
+
+/* --- team tally --- */
+.tally {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px 40px;
+  padding: 0 0 28px;
+}
+@media (min-width: 720px) {
+  .tally { grid-template-columns: 1fr 1fr; }
+}
+.tally[data-view="chargers"],
+.tally[data-view="rams"] { grid-template-columns: 1fr; max-width: 520px; }
+.tally-card[hidden] { display: none; }
+.tally-card { border-top: 1px solid var(--ink); padding-top: 14px; }
+.tally-card h3 { font-family: var(--serif); font-weight: 600; font-size: 22px; }
+.tally-card .kicker { margin-top: 4px; }
+.tally-nums {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-top: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.tally-nums .num { font-family: var(--serif); font-weight: 700; font-size: 26px; margin-top: 4px; }
+.tally-nums .fine { font-size: 12px; color: var(--ink-mute); margin-top: 2px; }
+
 /* --- tickets table --- */
 .season { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; padding: 32px 0 18px; }
 .season h2 { font-family: var(--serif); font-weight: 600; font-size: 34px; }

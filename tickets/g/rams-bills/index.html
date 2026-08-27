@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tickets — Ostroff.LA</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..800;1,6..72,400..800&family=Archivo:wght@400..700&family=Libre+Franklin:wght@300..700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/site.css" />
+</head>
+<body>
+  <div class="page section-tickets tabular" style="padding-top:36px">
+    <div class="bar">
+      <a class="brand" href="/tickets/">Tickets<span class="dot">.</span></a>
+      <nav class="nav" aria-label="Site">
+        <a href="/">Home</a>
+        <a href="/trips/">Trips</a>
+        <a href="/tickets/" aria-current="page">Tickets</a>
+      </nav>
+      <span class="eyebrow">tickets.ostroff.la</span>
+    </div>
+    <div id="game-root"></div>
+    <footer class="foot eyebrow" style="margin-top:0">
+      <span>Research, not checkout</span>
+      <span>Ask as of 2026-08-26 ~9:15pm PT</span>
+      <span>ostroff.la</span>
+    </footer>
+  </div>
+  <script src="/tickets/data.js"></script>
+  <script src="/tickets/game.js"></script>
+  <script>TicketGame.render("rams-bills");</script>
+</body>
+</html>
