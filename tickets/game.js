@@ -1,5 +1,10 @@
 window.TicketGame = {
   usd(n) { return "$" + Number(n).toLocaleString("en-US"); },
+  slug(name) { return String(name || "").trim().toLowerCase(); },
+  mark(name) {
+    const s = this.slug(name);
+    return s ? `<img class="mark" src="/tickets/teams/${s}.svg" alt="" />` : "";
+  },
   find(id) {
     for (const team of window.TICKET_TEAMS || []) {
       for (const game of team.games) {
@@ -14,7 +19,7 @@ window.TicketGame = {
     if (game.kind === "regular") return "Regular";
     return null;
   },
-  render(id) {
+  async render(id) {
     const found = this.find(id);
     const root = document.getElementById("game-root");
     if (!found) {
@@ -23,7 +28,9 @@ window.TicketGame = {
         <header class="hero"><div><h1>Not found</h1><p class="lede">That game is not in the season list.</p></div></header>`;
       return;
     }
+    const sales = window.TicketSales ? await window.TicketSales.pull() : {};
     const { team, game } = found;
+    const live = sales[game.id] || game.sold || null;
     const title = team.name + " vs " + game.opponent;
     document.title = title + " \u2014 Tickets \u2014 Ostroff.LA";
     const kicker = [this.kind(game), this.when(game), "SoFi Stadium"].filter(Boolean).join(" \u00b7 ");
@@ -32,9 +39,9 @@ window.TicketGame = {
     const opp = m ? m.pairLow - game.pairPrice : null;
     const oppClass = opp == null ? "" : opp >= 0 ? "up" : "down";
     const oppText = opp == null ? "\u2014" : (opp >= 0 ? "+" : "\u2212") + this.usd(Math.abs(opp));
-    const sold = game.sold;
-    const status = sold
-      ? `<span class="status up">Sold</span><div class="fine">${this.usd(sold.amount)} \u00b7 ${sold.method} \u00b7 ${sold.who}</div>`
+    const saleLine = live ? window.TicketSales.line(live) : "";
+    const status = live
+      ? `<span class="status up">Sold</span><div class="fine">${saleLine}</div>`
       : game.played
         ? `<span class="status">Played</span>`
         : `<div class="pills"><span class="pill on">Undecided</span><span class="pill">Keep</span><span class="pill">List</span></div>`;
@@ -51,27 +58,38 @@ window.TicketGame = {
            ${m.url ? `<a href="${m.url}" target="_blank" rel="noopener">StubHub event</a>.` : ""}</p>`
       : `<div class="label" style="margin-bottom:16px">Section ${team.section}</div>
          <p class="fineprint">${game.played ? "Played. No market." : "No section ask pulled for this game."}</p>`;
-    const form = sold
-      ? `<div class="label" style="margin-bottom:16px">Sale</div>
+    const today = window.TicketSales.today();
+    let form;
+    if (live) {
+      form = `<div class="label" style="margin-bottom:16px">Sale</div>
          <div class="card-form"><div class="label">Recorded</div>
-         <p class="prose" style="margin:0">${this.usd(sold.amount)} \u00b7 ${sold.method} \u00b7 ${sold.who} \u00b7 Aug 27</p></div>`
-      : game.played
-        ? `<div class="label" style="margin-bottom:16px">Sale</div><p class="fineprint">Played. Nothing to record.</p>`
-        : `<div class="label" style="margin-bottom:16px">Record a sale</div>
-           <form class="card-form" onsubmit="return false">
-             <div><div class="label">Sold for (pair)</div><input type="text" inputmode="decimal" placeholder="$ \u2014" /></div>
+         <p class="prose" style="margin:0">${saleLine}</p>
+         <button type="button" class="btn" data-clear-sale>Clear sale</button></div>`;
+    } else if (game.played) {
+      form = `<div class="label" style="margin-bottom:16px">Sale</div><p class="fineprint">Played. Nothing to record.</p>`;
+    } else {
+      form = `<div class="label" style="margin-bottom:16px">Record a sale</div>
+           <form class="card-form" data-sale-form>
+             <div><div class="label">Sold for (pair)</div><input name="amount" type="text" inputmode="decimal" placeholder="$ \u2014" required /></div>
              <div><div class="label">Method</div>
-               <div class="pills"><span class="pill md ink">Venmo</span><span class="pill md">Zelle</span><span class="pill md">Cash</span></div></div>
-             <div><div class="label">Buyer</div><input type="text" placeholder="Name" /></div>
-             <button type="submit" class="btn solid" disabled title="Not wired up yet">Record sale</button>
-           </form>
-           <p class="fineprint" style="margin-top:14px">Visual only on this page. The live recorder is on tickets.ostroff.la.</p>`;
+               <div class="pills" data-methods>
+                 <button type="button" class="pill md ink" data-method="venmo">Venmo</button>
+                 <button type="button" class="pill md" data-method="zelle">Zelle</button>
+                 <button type="button" class="pill md" data-method="cash">Cash</button>
+               </div></div>
+             <div><div class="label">Buyer</div><input name="who" type="text" placeholder="Name" /></div>
+             <div><div class="label">Sale date</div><input name="soldOn" type="date" value="${today}" required /></div>
+             <button type="submit" class="btn solid">Record sale</button>
+             <p class="fineprint" data-sale-err hidden></p>
+           </form>`;
+    }
     root.innerHTML = `
       <div class="crumbs">
         <a href="/tickets/">\u2190 ${team.name} ${team.season}</a><span>/</span><span class="here">vs ${game.opponent}</span>
       </div>
       <header class="hero">
         <div>
+          <div class="hero-marks">${this.mark(team.name)}${this.mark(game.opponent)}</div>
           <h1 style="font-size:clamp(36px, 6vw, 56px)">${title}</h1>
           <div class="kicker">${kicker}</div>
           <div class="note">${seats}</div>
@@ -85,5 +103,49 @@ window.TicketGame = {
         <div class="stat"><div class="label">Seat line</div><div class="big">${m ? this.usd(m.pairLow) : "\u2014"}</div><div class="fine">${seatFine}</div></div>
       </div>
       <div class="game"><section>${research}</section><aside>${form}</aside></div>`;
-  }
+    this.bind(id, root);
+  },
+  bind(id, root) {
+    const form = root.querySelector("[data-sale-form]");
+    if (form) {
+      let method = "venmo";
+      form.querySelectorAll("[data-method]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          method = btn.dataset.method;
+          form.querySelectorAll("[data-method]").forEach((b) => b.classList.toggle("ink", b === btn));
+        });
+      });
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const err = form.querySelector("[data-sale-err]");
+        const amount = Number(String(form.amount.value || "").replace(/[$,]/g, ""));
+        const soldOn = form.soldOn.value;
+        if (!Number.isFinite(amount) || amount < 0) {
+          err.hidden = false;
+          err.textContent = "Enter a pair amount.";
+          return;
+        }
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(soldOn)) {
+          err.hidden = false;
+          err.textContent = "Pick a sale date.";
+          return;
+        }
+        err.hidden = true;
+        await window.TicketSales.save(id, {
+          amount,
+          who: form.who.value.trim(),
+          method,
+          soldOn,
+        });
+        this.render(id);
+      });
+    }
+    const clear = root.querySelector("[data-clear-sale]");
+    if (clear) {
+      clear.addEventListener("click", async () => {
+        await window.TicketSales.clear(id);
+        this.render(id);
+      });
+    }
+  },
 };

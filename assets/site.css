@@ -427,6 +427,15 @@ button { font: inherit; cursor: pointer; }
 .tally-nums .num { font-family: var(--serif); font-weight: 700; font-size: 26px; margin-top: 4px; }
 .tally-nums .fine { font-size: 12px; color: var(--ink-mute); margin-top: 2px; }
 
+
+.mark { width: 28px; height: 28px; object-fit: contain; flex: none; }
+.mark.lg { width: 44px; height: 44px; }
+.tally-head { display: flex; align-items: center; gap: 12px; }
+.hero-marks { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.hero-marks .mark { width: 40px; height: 40px; }
+.matchup { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.tbl .tr { align-items: center; }
+
 /* --- tickets table --- */
 .season { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; padding: 32px 0 18px; }
 .season h2 { font-family: var(--serif); font-weight: 600; font-size: 34px; }
