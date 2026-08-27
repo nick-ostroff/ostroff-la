@@ -430,6 +430,10 @@ a.match { border-bottom: 1px solid var(--dot); }
 .down { color: var(--red); }
 .tbl .status { font-family: var(--sans); font-weight: 600; font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; }
 .tbl .actions { display: flex; justify-content: flex-end; gap: 6px; flex-wrap: nowrap; }
+.tbl .tr[hidden] { display: none; }
+.tbl[data-view="chargers"] .team-prefix,
+.tbl[data-view="rams"] .team-prefix { display: none; }
+
 
 /* --- game page --- */
 .stats { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--ink); }

@@ -32,72 +32,145 @@
 
     <div class="season">
       <div>
-        <h2>Chargers 2026</h2>
-        <div class="kicker">SoFi 121 · Row 7 · Seats 9–10 · Qty 2</div>
-        <div class="note">Next up vs Rams · Thu Aug 27 · 7:00 PM</div>
+        <h2 data-season-title>2026 season</h2>
+        <div class="kicker" data-season-kicker>Chargers 121 · Rams 540 · Qty 2</div>
+        <div class="note" data-season-note>Next up Chargers vs Rams · Thu Aug 27 · 7:00 PM</div>
       </div>
-      <div class="pills">
-        <span class="pill md">All</span>
-        <span class="pill md on">Chargers</span>
-        <span class="pill md">Rams</span>
+      <div class="pills" role="tablist" aria-label="Team">
+        <button type="button" class="pill md on" data-filter="all">All</button>
+        <button type="button" class="pill md" data-filter="chargers">Chargers</button>
+        <button type="button" class="pill md" data-filter="rams">Rams</button>
       </div>
     </div>
 
-    <div class="tbl">
+    <div class="tbl" data-view="all">
       <div class="thead"><span>Matchup</span><span class="r">Paid</span><span class="r">Ask</span><span class="r">Opportunity</span><span class="r">Status</span></div>
 
-      <div class="tr past">
-        <div><span class="match">vs 49ers</span><div class="when">Preseason · Thu Aug 20 · 7:00 PM</div></div>
+      <div class="tr past" data-team="chargers">
+        <div><span class="match"><span class="team-prefix">Chargers </span>vs 49ers</span><div class="when">Preseason · Thu Aug 20 · 7:00 PM</div></div>
         <span class="r num">$212</span><span class="r num">—</span><span class="r num">—</span>
         <span class="r status">Played</span>
       </div>
-      <div class="tr">
-        <div><span class="match">vs Rams</span><div class="when">Preseason · Thu Aug 27 · 7:00 PM</div></div>
+      <div class="tr past" data-team="rams">
+        <div><span class="match"><span class="team-prefix">Rams </span>vs Saints</span><div class="when">Sat Aug 22 · 1:00 PM</div></div>
+        <span class="r num">$152</span><span class="r num">—</span><span class="r num">—</span>
+        <span class="r status">Played</span>
+      </div>
+      <div class="tr" data-team="chargers">
+        <div><span class="match"><span class="team-prefix">Chargers </span>vs Rams</span><div class="when">Preseason · Thu Aug 27 · 7:00 PM</div></div>
         <span class="r num">$212</span>
         <div class="r"><span class="num">$201 / $206</span><div class="fine">121 · 2 listings</div></div>
         <span class="r opp down">−$11</span>
         <div class="r"><span class="status up">Sold</span><div class="fine">$210 · Venmo · I. Almaguer</div></div>
       </div>
-      <div class="tr">
-        <div><a class="match" href="/tickets/cardinals/">vs Cardinals</a><div class="when">Regular · Sun Sep 13 · 1:25 PM</div></div>
+      <div class="tr" data-team="chargers">
+        <div><a class="match" href="/tickets/cardinals/"><span class="team-prefix">Chargers </span>vs Cardinals</a><div class="when">Regular · Sun Sep 13 · 1:25 PM</div></div>
         <span class="r num">$336</span>
         <div class="r"><span class="num">$622 / $713</span><div class="fine">121 · 5 listings</div></div>
         <span class="r opp up">+$286</span>
         <div class="actions pills"><span class="pill sm on">Undecided</span><span class="pill sm">Keep</span><span class="pill sm">List</span></div>
       </div>
-      <div class="tr">
-        <div><span class="match">vs Raiders</span><div class="when">Regular · Sun Sep 20 · 1:05 PM</div></div>
+      <div class="tr" data-team="chargers">
+        <div><span class="match"><span class="team-prefix">Chargers </span>vs Raiders</span><div class="when">Regular · Sun Sep 20 · 1:05 PM</div></div>
         <span class="r num">$430</span>
         <div class="r"><span class="num">$961 / $1,208</span><div class="fine">121 · 5 listings</div></div>
         <span class="r opp up">+$531</span>
         <div class="actions pills"><span class="pill sm on">Undecided</span><span class="pill sm">Keep</span><span class="pill sm">List</span></div>
       </div>
-      <div class="tr">
-        <div><span class="match">vs Broncos</span><div class="when">Regular · Sun Oct 11 · 1:05 PM</div></div>
+      <div class="tr" data-team="rams">
+        <div><span class="match"><span class="team-prefix">Rams </span>vs Giants</span><div class="when">Mon Sep 21 · 5:15 PM · MNF</div></div>
+        <span class="r num">$200</span>
+        <div class="r"><span class="num">$348 / $474</span><div class="fine">540 · 34 listings</div></div>
+        <span class="r opp up">+$148</span>
+        <div class="actions pills"><span class="pill sm on">Undecided</span><span class="pill sm">Keep</span><span class="pill sm">List</span></div>
+      </div>
+      <div class="tr" data-team="chargers">
+        <div><span class="match"><span class="team-prefix">Chargers </span>vs Broncos</span><div class="when">Regular · Sun Oct 11 · 1:05 PM</div></div>
         <span class="r num">$352</span>
         <div class="r"><span class="num">$896 / $1,221</span><div class="fine">121 · 10 listings</div></div>
         <span class="r opp up">+$544</span>
         <div class="actions pills"><span class="pill sm on">Undecided</span><span class="pill sm">Keep</span><span class="pill sm">List</span></div>
       </div>
-      <div class="tr">
-        <div><span class="match">vs Texans</span><div class="when">Regular · Sun Nov 8 · 1:05 PM</div></div>
+      <div class="tr" data-team="rams">
+        <div><span class="match"><span class="team-prefix">Rams </span>vs Bills</span><div class="when">Mon Oct 12 · 5:15 PM · MNF</div></div>
+        <span class="r num">$272</span>
+        <div class="r"><span class="num">$549 / $791</span><div class="fine">540 · 53 listings</div></div>
+        <span class="r opp up">+$277</span>
+        <div class="actions pills"><span class="pill sm on">Undecided</span><span class="pill sm">Keep</span><span class="pill sm">List</span></div>
+      </div>
+      <div class="tr" data-team="rams">
+        <div><span class="match"><span class="team-prefix">Rams </span>vs Cardinals</span><div class="when">Sun Oct 18 · 1:05 PM</div></div>
+        <span class="r num">$186</span>
+        <div class="r"><span class="num">$250 / $325</span><div class="fine">540 · 48 listings</div></div>
+        <span class="r opp up">+$64</span>
+        <div class="actions pills"><span class="pill sm on">Undecided</span><span class="pill sm">Keep</span><span class="pill sm">List</span></div>
+      </div>
+      <div class="tr" data-team="rams">
+        <div><span class="match"><span class="team-prefix">Rams </span>vs Chargers</span><div class="when">Sun Nov 1 · 1:05 PM</div></div>
+        <span class="r num">$214</span>
+        <div class="r"><span class="num">$373 / $506</span><div class="fine">540 · 44 listings</div></div>
+        <span class="r opp up">+$159</span>
+        <div class="actions pills"><span class="pill sm on">Undecided</span><span class="pill sm">Keep</span><span class="pill sm">List</span></div>
+      </div>
+      <div class="tr" data-team="chargers">
+        <div><span class="match"><span class="team-prefix">Chargers </span>vs Texans</span><div class="when">Regular · Sun Nov 8 · 1:05 PM</div></div>
         <span class="r num">$326</span>
         <div class="r"><span class="num">$489 / $800</span><div class="fine">121 · 9 listings</div></div>
         <span class="r opp up">+$163</span>
         <div class="actions pills"><span class="pill sm on">Undecided</span><span class="pill sm">Keep</span><span class="pill sm">List</span></div>
       </div>
-      <div class="tr">
-        <div><span class="match">vs Jets</span><div class="when">Regular · Sun Nov 22 · 1:05 PM</div></div>
+      <div class="tr" data-team="chargers">
+        <div><span class="match"><span class="team-prefix">Chargers </span>vs Jets</span><div class="when">Regular · Sun Nov 22 · 1:05 PM</div></div>
         <span class="r num">$300</span>
         <div class="r"><span class="num">$401 / $651</span><div class="fine">121 · 12 listings</div></div>
         <span class="r opp up">+$101</span>
         <div class="actions pills"><span class="pill sm on">Undecided</span><span class="pill sm">Keep</span><span class="pill sm">List</span></div>
       </div>
-      <div class="tr">
-        <div><span class="match">vs Patriots</span><div class="when">Regular · Sun Nov 29 · 5:20 PM · SNF</div></div>
+      <div class="tr" data-team="rams">
+        <div><span class="match"><span class="team-prefix">Rams </span>vs Packers</span><div class="when">Wed Nov 25 · 5:00 PM · Thanksgiving Eve</div></div>
+        <span class="r num">$422</span>
+        <div class="r"><span class="num">$670 / $1,138</span><div class="fine">540 · 36 listings</div></div>
+        <span class="r opp up">+$248</span>
+        <div class="actions pills"><span class="pill sm on">Undecided</span><span class="pill sm">Keep</span><span class="pill sm">List</span></div>
+      </div>
+      <div class="tr" data-team="chargers">
+        <div><span class="match"><span class="team-prefix">Chargers </span>vs Patriots</span><div class="when">Regular · Sun Nov 29 · 5:20 PM · SNF</div></div>
         <span class="r num">$406</span>
         <div class="r"><span class="num">$1,025 / $1,539</span><div class="fine">121 · 7 listings</div></div>
         <span class="r opp up">+$619</span>
+        <div class="actions pills"><span class="pill sm on">Undecided</span><span class="pill sm">Keep</span><span class="pill sm">List</span></div>
+      </div>
+      <div class="tr" data-team="rams">
+        <div><span class="match"><span class="team-prefix">Rams </span>vs Chiefs</span><div class="when">Thu Dec 3 · 5:15 PM · TNF</div></div>
+        <span class="r num">$362</span>
+        <div class="r"><span class="num">$506 / $714</span><div class="fine">540 · 50 listings</div></div>
+        <span class="r opp up">+$144</span>
+        <div class="actions pills"><span class="pill sm on">Undecided</span><span class="pill sm">Keep</span><span class="pill sm">List</span></div>
+      </div>
+      <div class="tr" data-team="chargers">
+        <div><span class="match"><span class="team-prefix">Chargers </span>vs 49ers</span><div class="when">Regular · Thu Dec 17 · 5:15 PM · TNF</div></div>
+        <span class="r num">$548</span>
+        <div class="r"><span class="num">$1,128 / $1,516</span><div class="fine">121 · 12 listings</div></div>
+        <span class="r opp up">+$580</span>
+        <div class="actions pills"><span class="pill sm on">Undecided</span><span class="pill sm">Keep</span><span class="pill sm">List</span></div>
+      </div>
+      <div class="tr" data-team="rams">
+        <div><span class="match"><span class="team-prefix">Rams </span>vs Cowboys</span><div class="when">Sun Dec 20 · 1:25 PM</div></div>
+        <span class="r num">$450</span>
+        <div class="r"><span class="num">$753 / $955</span><div class="fine">540 · 34 listings</div></div>
+        <span class="r opp up">+$303</span>
+        <div class="actions pills"><span class="pill sm on">Undecided</span><span class="pill sm">Keep</span><span class="pill sm">List</span></div>
+      </div>
+      <div class="tr" data-team="chargers">
+        <div><span class="match"><span class="team-prefix">Chargers </span>vs Chiefs</span><div class="when">Regular · TBD</div></div>
+        <span class="r num">$406</span>
+        <div class="r"><span class="num">$680 / $1,232</span><div class="fine">121 · 11 listings</div></div>
+        <span class="r opp up">+$274</span>
+        <div class="actions pills"><span class="pill sm on">Undecided</span><span class="pill sm">Keep</span><span class="pill sm">List</span></div>
+      </div>
+      <div class="tr" data-team="rams">
+        <div><span class="match"><span class="team-prefix">Rams </span>vs Seahawks</span><div class="when">TBA</div></div>
+        <span class="r num">$242</span><span class="r num">—</span><span class="r num">—</span>
         <div class="actions pills"><span class="pill sm on">Undecided</span><span class="pill sm">Keep</span><span class="pill sm">List</span></div>
       </div>
     </div>
@@ -111,6 +184,44 @@
   <script>
     const t = document.querySelector('[data-today]');
     if (t) t.textContent = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).format(new Date());
+
+    const copy = {
+      all: {
+        title: '2026 season',
+        kicker: 'Chargers 121 · Rams 540 · Qty 2',
+        note: 'Next up Chargers vs Rams · Thu Aug 27 · 7:00 PM',
+      },
+      chargers: {
+        title: 'Chargers 2026',
+        kicker: 'SoFi 121 · Row 7 · Seats 9–10 · Qty 2',
+        note: 'Next up vs Rams · Thu Aug 27 · 7:00 PM',
+      },
+      rams: {
+        title: 'Rams 2026',
+        kicker: 'SoFi 540 · Row 5 · Seats 14–15 · Qty 2',
+        note: 'Next up vs Giants · Mon Sep 21 · 5:15 PM · MNF',
+      },
+    };
+
+    const tbl = document.querySelector('.tbl');
+    const title = document.querySelector('[data-season-title]');
+    const kicker = document.querySelector('[data-season-kicker]');
+    const note = document.querySelector('[data-season-note]');
+    const pills = document.querySelectorAll('[data-filter]');
+
+    const setView = (view) => {
+      tbl.dataset.view = view;
+      const c = copy[view];
+      title.textContent = c.title;
+      kicker.textContent = c.kicker;
+      note.textContent = c.note;
+      pills.forEach((p) => p.classList.toggle('on', p.dataset.filter === view));
+      document.querySelectorAll('.tr[data-team]').forEach((row) => {
+        row.hidden = view !== 'all' && row.dataset.team !== view;
+      });
+    };
+
+    pills.forEach((p) => p.addEventListener('click', () => setView(p.dataset.filter)));
   </script>
 </body>
 </html>
