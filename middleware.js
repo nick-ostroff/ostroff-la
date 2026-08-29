@@ -2,7 +2,7 @@
 // - ostroff.la /trips and /tickets: family passcode cookie (FAMILY_TOKEN)
 // - grok.ostroff.la: HTTP basic auth (user nick, password MORNING_BASIC_PASSWORD)
 //   Pages: / and /mail. Password is env-only. Never commit it. Fail closed if unset.
-// - ostroff.la /morning is not public (404).
+// - ostroff.la /morning and /api/morning-mail: same basic auth (gated path, no homepage link).
 
 export const config = {
   matcher: [
@@ -102,7 +102,9 @@ export default function middleware(req) {
   }
 
   if (path === '/morning' || path.startsWith('/morning/') || path === '/api/morning-mail') {
-    return notFound();
+    const blocked = gateMorning(req);
+    if (blocked) return blocked;
+    return;
   }
 
   if (!(path.startsWith('/trips') || path.startsWith('/tickets'))) return;
