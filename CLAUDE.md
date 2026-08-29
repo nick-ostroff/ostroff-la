@@ -23,15 +23,16 @@ Design is the "Masthead" editorial system from the Claude Design project "Ostrof
 - `unlock/index.html` — passcode prompt; reads `?next=` and `?err=`.
 - `api/feed.js` — `GET /api/feed?who=nick,peter` fetches and merges RSS feeds (`nick` → nickostroff.com/feed.xml, `peter` → peterostroff.com/feed.xml), regex-parsed, newest-first JSON, edge-cached `s-maxage=60, stale-while-revalidate=300`. Unknown `who` → 400; upstream failure → 502. Adding a source = add to the `PEOPLE` map.
 - `api/unlock.js` — `POST` with `code` + `next`; on match sets the `ostroff_family` cookie (1 year, HttpOnly) and 302s to `next` (only `/trips…` or `/tickets…` allowed); otherwise 302s back to `/unlock/?err=1`.
-- `middleware.js` — Vercel Routing Middleware on `/trips/*` and `/tickets/*` (family cookie `FAMILY_TOKEN` → `/unlock/`) and `/morning` (HTTP basic auth, user `nick`, password `MORNING_BASIC_PASSWORD`). Fail closed with 503 if the morning password is unset.
-- `morning/index.html`, `morning/mail.html` — Cap sample Morning dash + mail log. No homepage link. noindex. Basic-auth only; password is a Vercel secret, never in git.
+- `middleware.js` — `/trips/*` and `/tickets/*` on ostroff.la (family cookie). `grok.ostroff.la` is HTTP basic auth (user `nick`, password `MORNING_BASIC_PASSWORD`). ostroff.la `/morning` is 404. Fail closed with 503 if the grok password is unset.
+- `morning/index.html`, `morning/mail.html` — Cap sample Morning dash + mail log, served at https://grok.ostroff.la/ and `/mail`. No homepage link on ostroff.la. noindex. Password is a Vercel secret, never in git.
+- `vercel.json` — host rewrites so grok.ostroff.la `/` and `/mail` map onto the morning files.
 - Static assets: `favicon.svg`, `images/` (portraits), `robots.txt` (disallows the family sections, unlock, api), `sitemap.xml` (home only).
 
 ## Environment variables (Vercel)
 
 - `FAMILY_PASSCODE` — what the family types to unlock Trips/Tickets.
 - `FAMILY_TOKEN` — random secret stored in the cookie. Rotate to log everyone out.
-- `MORNING_BASIC_PASSWORD` — HTTP basic-auth password for `/morning`. Username is `nick` (override with `MORNING_BASIC_USER`). Never commit this value.
+- `MORNING_BASIC_PASSWORD` — HTTP basic-auth password for grok.ostroff.la. Username is `nick` (override with `MORNING_BASIC_USER`). Never commit this value.
 - `MORNING_MAIL_JSON` — mail-log payload for `/api/morning-mail`. Not in git (public repo). Fail closed if unset.
 
 Both must be set or the family sections stay locked (unlock always fails).

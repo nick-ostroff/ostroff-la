@@ -1,17 +1,32 @@
 // Vercel Routing Middleware
-// - /trips and /tickets: family passcode cookie (FAMILY_TOKEN)
-// - /morning: HTTP basic auth (user nick, password MORNING_BASIC_PASSWORD)
-// Password is env-only. Never commit it. Fail closed if unset.
+// - ostroff.la /trips and /tickets: family passcode cookie (FAMILY_TOKEN)
+// - grok.ostroff.la: HTTP basic auth (user nick, password MORNING_BASIC_PASSWORD)
+//   Pages: / and /mail. Password is env-only. Never commit it. Fail closed if unset.
+// - ostroff.la /morning is not public (404).
 
 export const config = {
   matcher: [
-    '/trips/:path*',
-    '/tickets/:path*',
+    '/',
+    '/mail',
+    '/mail.html',
+    '/robots.txt',
+    '/favicon.svg',
+    '/favicon.ico',
+    '/api/morning-mail',
     '/morning',
     '/morning/:path*',
-    '/api/morning-mail',
+    '/trips/:path*',
+    '/tickets/:path*',
   ],
 };
+
+function hostOf(req) {
+  return (req.headers.get('host') || '').split(':')[0].toLowerCase();
+}
+
+function isGrok(req) {
+  return hostOf(req) === 'grok.ostroff.la';
+}
 
 function timingSafeEqual(a, b) {
   if (a.length !== b.length) return false;
@@ -27,6 +42,13 @@ function unauthorized() {
       'WWW-Authenticate': 'Basic realm="Morning"',
       'Cache-Control': 'no-store',
     },
+  });
+}
+
+function notFound() {
+  return new Response('Not found', {
+    status: 404,
+    headers: { 'Cache-Control': 'no-store' },
   });
 }
 
@@ -54,14 +76,36 @@ function gateMorning(req) {
   if (!timingSafeEqual(u, user) || !timingSafeEqual(p, pass)) return unauthorized();
 }
 
+function grokAllowed(path) {
+  return (
+    path === '/' ||
+    path === '/mail' ||
+    path === '/mail.html' ||
+    path === '/robots.txt' ||
+    path === '/favicon.svg' ||
+    path === '/favicon.ico' ||
+    path === '/api/morning-mail' ||
+    path === '/morning' ||
+    path.startsWith('/morning/')
+  );
+}
+
 export default function middleware(req) {
   const url = new URL(req.url);
   const path = url.pathname;
-  if (path === '/morning' || path.startsWith('/morning/') || path === '/api/morning-mail') {
+
+  if (isGrok(req)) {
+    if (!grokAllowed(path)) return notFound();
     const blocked = gateMorning(req);
     if (blocked) return blocked;
     return;
   }
+
+  if (path === '/morning' || path.startsWith('/morning/') || path === '/api/morning-mail') {
+    return notFound();
+  }
+
+  if (!(path.startsWith('/trips') || path.startsWith('/tickets'))) return;
 
   const token = process.env.FAMILY_TOKEN;
   const cookie = req.headers.get('cookie') || '';

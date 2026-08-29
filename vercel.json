@@ -1,0 +1,24 @@
+{
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "grok.ostroff.la" }],
+      "destination": "/morning/index.html"
+    },
+    {
+      "source": "/mail",
+      "has": [{ "type": "host", "value": "grok.ostroff.la" }],
+      "destination": "/morning/mail.html"
+    },
+    {
+      "source": "/mail.html",
+      "has": [{ "type": "host", "value": "grok.ostroff.la" }],
+      "destination": "/morning/mail.html"
+    },
+    {
+      "source": "/robots.txt",
+      "has": [{ "type": "host", "value": "grok.ostroff.la" }],
+      "destination": "/morning/robots.txt"
+    }
+  ]
+}
