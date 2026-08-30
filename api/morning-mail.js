@@ -1,12 +1,13 @@
 // GET /api/morning-mail — filing log JSON plus per-row notes.
-// Production source is the Vercel secret MORNING_MAIL_JSON. Locally, fall
-// back to .data/morning-mail.json or a rebuild from gmail-batch/logs
-// per-box CSVs. Notes come from the filing-corrections store. Never commit
-// those files.
+// Production source is the Vercel secret MORNING_MAIL_JSON (plain JSON or
+// gz: + gzip/base64 so labels fit the 64KB env cap). Locally, fall back
+// to .data/morning-mail.json or a rebuild from gmail-batch/logs per-box
+// CSVs. Notes come from the filing-corrections store. Never commit those
+// files.
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildPayload, defaultLogDir, loadBoxesFromDir, publicPayload } from '../lib/mail-log.js';
+import { buildPayload, decodeMailEnv, defaultLogDir, loadBoxesFromDir, publicPayload } from '../lib/mail-log.js';
 import { loadNotes, mergeMailWithNotes } from '../lib/mail-notes.js';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
@@ -20,7 +21,8 @@ function send(res, status, body, raw = false) {
 
 function parseMail(raw) {
   try {
-    const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    const decoded = typeof raw === 'string' ? decodeMailEnv(raw) : raw;
+    const data = typeof decoded === 'string' ? JSON.parse(decoded) : decoded;
     return {
       rows: data.rows || [],
       corrs: data.corrs || [],
