@@ -1,6 +1,6 @@
 // Vercel Routing Middleware
 // - Existing subdomains 301 onto ostroff.la (tickets.ostroff.la is kept; do not delete).
-// - Private paths: /trips, /tickets, /bots, /morning + /api/morning-mail
+// - Private paths: /trips, /tickets, /bots, /morning + mail APIs
 // - Admin session cookie (ostroff_admin) once ADMIN_SESSION_SECRET is set.
 // - Until then, nick / MORNING_BASIC_PASSWORD basic auth is the fail-closed stopgap.
 
@@ -72,6 +72,7 @@ function gateMorning(req) {
 function isPrivatePath(path) {
   return (
     path === '/api/morning-mail' ||
+    path === '/api/mail-notes' ||
     path === '/trips' || path.startsWith('/trips/') ||
     path === '/tickets' || path.startsWith('/tickets/') ||
     path === '/bots' || path.startsWith('/bots/') ||
@@ -99,7 +100,7 @@ function subdomainTarget(host, path) {
     if (path === '/mail' || path === '/mail.html' || path === '/morning/mail.html' || path === '/morning/mail') {
       return '/bots/mail/';
     }
-    if (path === '/api/morning-mail') return '/api/morning-mail';
+    if (path.startsWith('/api/')) return path;
     if (path === '/' || path === '/morning' || path === '/morning/') return '/bots/';
     if (path.startsWith('/morning/')) return `/bots/${path.slice('/morning/'.length)}`;
     if (path.startsWith('/bots')) return path;
