@@ -57,7 +57,10 @@
   .date { white-space: nowrap; color: var(--muted); font-variant-numeric: tabular-nums; }
   .from { font-weight: 650; max-width: 16em; }
   .subj { max-width: 22em; }
-  .rule { color: var(--accent); font-size: 12px; letter-spacing: .02em; max-width: 16em; word-break: break-word; }
+  .labels { max-width: 18em; }
+  .label-list { display: flex; flex-wrap: wrap; gap: 4px; }
+  .gmail-label { color: var(--accent); font-size: 12px; letter-spacing: .02em; word-break: break-word; }
+  .rule-id { color: var(--muted); font-size: 11px; margin-top: 4px; word-break: break-word; }
   .act { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
   .act.keep { background: #1e3326; color: var(--on); }
   .act.archive { background: #2a2a2a; color: var(--off); }
@@ -87,7 +90,7 @@
   </div>
   <div class="kicker"><a href="/bots/">Briefing</a> · Cliff<span class="sample" data-sample>Live</span></div>
   <h1>Mail log</h1>
-  <p class="sub">What Cliff filed, and the rule that sorted it. Leave a note if the filing should change. No bodies. Newest first — click a column to sort.</p>
+  <p class="sub">What Cliff filed, and the Gmail labels he assigned. Leave a note if the filing should change. No bodies. Newest first — click a column to sort.</p>
   <div class="stats" data-stats>Loading…</div>
   <div class="pills inbox" id="inboxes" aria-label="Inbox"></div>
   <div class="pills secondary" id="pills" aria-label="Keep or archive"></div>
@@ -108,7 +111,7 @@ const COLS = [
   ["from", "From"],
   ["subject", "Subject"],
   ["action", "Keep / archive"],
-  ["rule", "Rule"],
+  ["labels", "Labels"],
   ["note", "Note"]
 ];
 
@@ -256,6 +259,19 @@ function render() {
   </table></div>`;
 }
 
+function splitLabels(raw) {
+  return String(raw || "").split("|").map(s => s.trim()).filter(Boolean);
+}
+
+function labelCell(r) {
+  const labels = splitLabels(r.labels);
+  const primary = labels.length
+    ? `<div class="label-list">${labels.map(l => `<span class="gmail-label">${esc(l)}</span>`).join("")}</div>`
+    : `<div class="gmail-label">—</div>`;
+  const rule = r.rule ? `<div class="rule-id">${esc(r.rule)}</div>` : "";
+  return primary + rule;
+}
+
 function rowHtml(r) {
   const notes = rowNotes(r);
   const latest = notes.length ? notes[notes.length - 1].note : "";
@@ -265,7 +281,7 @@ function rowHtml(r) {
     <td class="from">${esc(r.from)}</td>
     <td class="subj">${esc(r.subject) || "(no subject)"}</td>
     <td><span class="act ${esc(r.action)}">${esc(r.action)}</span></td>
-    <td class="rule">${esc(r.rule) || "unspecified"}</td>
+    <td class="labels"${r.rule ? ` title="Rule ${esc(r.rule)}"` : ""}>${labelCell(r)}</td>
     <td class="note-cell">
       <form class="note-form" data-key="${esc(r.key || "")}">
         <input name="note" type="text" maxlength="4000" value="${esc(draft)}" placeholder="Filing change for Cliff…" />
