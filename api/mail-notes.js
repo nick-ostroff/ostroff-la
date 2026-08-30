@@ -1,8 +1,10 @@
-// GET /api/mail-notes — Cap/Cliff feed of filing notes (admin).
-// POST /api/mail-notes — Nick saves a per-row note. Persists outside git.
+// GET /api/mail-notes — Cap/Cliff/Proto feed of filing notes.
+//   Admin session cookie, or Authorization: Bearer MAIL_NOTES_FEED_TOKEN.
+// POST /api/mail-notes — Nick saves a per-row note. Admin session only.
+// Persist: @vercel/blob (private) in production, .data locally. Not git.
 import { readBody, json } from '../lib/http.js';
 import { readSession } from '../lib/session.js';
-import { appendNote, loadNotes, notifyAgentMail } from '../lib/mail-notes.js';
+import { appendNote, loadNotes, notifyAgentMail, notifyWebhook } from '../lib/mail-notes.js';
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
@@ -19,9 +21,10 @@ export default async function handler(req, res) {
   const by = session?.username || process.env.MORNING_BASIC_USER || 'nick';
   const body = await readBody(req);
   const result = await appendNote(body, { by });
-  if (result.error) return json(res, result.status, { error: result.error });
+  if (result.error) return json(res, result.status || 400, { error: result.error });
 
   const notify = await notifyAgentMail(result.note);
+  const webhook = await notifyWebhook(result.note);
   return json(res, 201, {
     ok: true,
     note: result.note,
@@ -29,5 +32,6 @@ export default async function handler(req, res) {
     persisted: result.persisted,
     envSnippet: result.envSnippet,
     notify,
+    webhook,
   });
 }
