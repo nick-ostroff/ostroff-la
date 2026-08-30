@@ -75,7 +75,11 @@
     border-radius: 8px; color: #1a1408; background: var(--accent); border: 1px solid var(--accent); white-space: nowrap;
   }
   .note-form button:disabled { opacity: .6; }
+  .note-form button.clear {
+    color: var(--text); background: var(--panel2); border-color: var(--line);
+  }
   .note-form .status { color: var(--muted); font-size: 12px; white-space: nowrap; }
+  .note-form .status.applied { font-style: italic; }
   .empty { padding: 18px 16px; color: var(--muted); }
 </style>
 </head>
@@ -140,11 +144,29 @@ function arrivalMs(r) {
   return Number.isNaN(t) ? null : t;
 }
 
-function rowNotes(r) {
+function noteProcessed(n) {
+  if (!n || typeof n !== "object") return false;
+  const flag = n.processed ?? n.cleared ?? n.applied;
+  if (flag === true || flag === 1 || flag === "1") return true;
+  if (typeof flag === "string" && /^(true|yes|processed|cleared|applied)$/i.test(flag.trim())) return true;
+  const status = String(n.status || "").toLowerCase();
+  return status === "processed" || status === "cleared" || status === "applied";
+}
+
+function savedNotes(r) {
   const k = r.key || [r.account || "", r.date || "", r.from || "", r.subject || ""].join("\t");
   const stored = (r.notes && r.notes.length)
     ? r.notes
     : (DATA.notes || []).filter(n => (n.key || "") === k);
+  return stored.filter(n => String(n.note || "").trim());
+}
+
+function openSavedNotes(r) {
+  return savedNotes(r).filter(n => !noteProcessed(n));
+}
+
+function rowNotes(r) {
+  const stored = savedNotes(r);
   const corrs = (DATA.corrs || []).filter(c =>
     c.from === r.from && c.subject === r.subject &&
     (!c.account || !r.account || c.account === r.account)
@@ -165,7 +187,10 @@ function rowNotes(r) {
 }
 
 function latestNote(r) {
-  const notes = rowNotes(r);
+  const open = openSavedNotes(r);
+  if (open.length) return open[open.length - 1].note;
+  if (savedNotes(r).some(noteProcessed)) return "";
+  const notes = rowNotes(r).filter(n => !noteProcessed(n));
   return notes.length ? notes[notes.length - 1].note : "";
 }
 
@@ -200,6 +225,7 @@ function inboxRows() {
 function visibleRows() {
   const rows = inboxRows();
   if (ACTION === "keep" || ACTION === "archive") return rows.filter(r => r.action === ACTION);
+  if (ACTION === "notes") return rows.filter(r => openSavedNotes(r).length);
   return rows;
 }
 
@@ -213,9 +239,10 @@ function pills() {
   const counts = {
     all: rows.length,
     keep: rows.filter(r => r.action === "keep").length,
-    archive: rows.filter(r => r.action === "archive").length
+    archive: rows.filter(r => r.action === "archive").length,
+    notes: rows.filter(r => openSavedNotes(r).length).length
   };
-  const keys = [["all","All"],["keep","Kept"],["archive","Archived"]];
+  const keys = [["all","All"],["keep","Kept"],["archive","Archived"],["notes","Notes"]];
   document.getElementById("pills").innerHTML = keys.map(([k,l]) =>
     `<button type="button" class="${ACTION===k?"on":""}" data-f="${k}">${l} ${counts[k]}</button>`
   ).join("");
@@ -250,7 +277,9 @@ function render() {
   const shown = visibleRows();
   const el = document.getElementById("list");
   if (!shown.length) {
-    el.innerHTML = '<div class="empty">Nothing filed in this view.</div>';
+    el.innerHTML = ACTION === "notes"
+      ? '<div class="empty">No open notes in this inbox.</div>'
+      : '<div class="empty">Nothing filed in this view.</div>';
     return;
   }
   el.innerHTML = `<div class="wrap"><table>
@@ -273,9 +302,16 @@ function labelCell(r) {
 }
 
 function rowHtml(r) {
-  const notes = rowNotes(r);
-  const latest = notes.length ? notes[notes.length - 1].note : "";
+  const open = openSavedNotes(r);
+  const latestOpen = open.length ? open[open.length - 1] : null;
+  const saved = savedNotes(r);
+  const latestSaved = saved.length ? saved[saved.length - 1] : null;
+  const applied = !!(latestSaved && noteProcessed(latestSaved) && !latestOpen);
+  const latest = latestOpen ? latestOpen.note : (applied ? "" : latestNote(r));
   const draft = Object.prototype.hasOwnProperty.call(DRAFTS, r.key) ? DRAFTS[r.key] : latest;
+  const showClear = ACTION === "notes" && !!latestOpen;
+  const statusClass = applied ? "status applied" : "status";
+  const statusText = applied ? "Applied" : "";
   return `<tr data-key="${esc(r.key || "")}">
     <td class="date">${esc(fmtDate(r.date))}</td>
     <td class="from">${esc(r.from)}</td>
@@ -283,10 +319,11 @@ function rowHtml(r) {
     <td><span class="act ${esc(r.action)}">${esc(r.action)}</span></td>
     <td class="labels"${r.rule ? ` title="Rule ${esc(r.rule)}"` : ""}>${labelCell(r)}</td>
     <td class="note-cell">
-      <form class="note-form" data-key="${esc(r.key || "")}">
+      <form class="note-form" data-key="${esc(r.key || "")}" data-note-id="${esc(latestOpen && latestOpen.id || "")}">
         <input name="note" type="text" maxlength="4000" value="${esc(draft)}" placeholder="Filing change for Cliff…" />
         <button type="submit">Save</button>
-        <span class="status" aria-live="polite"></span>
+        ${showClear ? `<button type="button" class="clear" data-clear>Clear</button>` : ""}
+        <span class="${statusClass}" aria-live="polite">${statusText}</span>
       </form>
     </td>
   </tr>`;
@@ -318,6 +355,12 @@ document.getElementById("pills").addEventListener("click", e => {
   render();
 });
 document.getElementById("list").addEventListener("click", e => {
+  const clear = e.target.closest("button[data-clear]");
+  if (clear) {
+    const form = clear.closest("form.note-form");
+    if (form) clearNote(form);
+    return;
+  }
   const b = e.target.closest("button[data-sort]");
   if (!b) return;
   rememberDrafts();
@@ -336,13 +379,21 @@ document.getElementById("list").addEventListener("submit", e => {
   saveNote(form);
 });
 
+function applyNotes(notes, key, rowNotesList) {
+  DATA.notes = notes || DATA.notes || [];
+  const forRow = rowNotesList != null
+    ? rowNotesList
+    : (DATA.notes || []).filter(n => (n.key || "") === key);
+  DATA.rows = DATA.rows.map(r => r.key === key ? { ...r, notes: forRow } : r);
+}
+
 function saveNote(form) {
   const key = form.dataset.key;
   const row = DATA.rows.find(r => (r.key || "") === key);
   if (!row) return;
   const input = form.querySelector("input[name=note]");
   const status = form.querySelector(".status");
-  const button = form.querySelector("button");
+  const button = form.querySelector("button[type=submit]");
   const note = String(input.value || "").trim();
   if (!note) {
     if (status) status.textContent = "Type a note first.";
@@ -373,10 +424,7 @@ function saveNote(form) {
     .then(r => r.json().then(d => ({ ok: r.ok, d })))
     .then(({ ok, d }) => {
       if (!ok) throw new Error(d.error || "save failed");
-      DATA.notes = d.notes || DATA.notes || [];
-      DATA.rows = DATA.rows.map(r => r.key === key
-        ? { ...r, notes: (r.notes || []).concat([d.note]) }
-        : r);
+      applyNotes(d.notes, key);
       DRAFTS[key] = note;
       rememberDrafts();
       render();
@@ -384,12 +432,47 @@ function saveNote(form) {
         .find(f => f.dataset.key === key);
       if (next) {
         const s = next.querySelector(".status");
-        if (s) s.textContent = "Saved.";
+        if (s) {
+          s.classList.remove("applied");
+          s.textContent = "Saved.";
+        }
       }
     })
     .catch(err => {
       if (button) button.disabled = false;
       if (status) status.textContent = err.message || "Could not save.";
+    });
+}
+
+function clearNote(form) {
+  const key = form.dataset.key;
+  const id = form.dataset.noteId;
+  const row = DATA.rows.find(r => (r.key || "") === key);
+  if (!row) return;
+  const status = form.querySelector(".status");
+  const button = form.querySelector("button[data-clear]");
+  if (button) button.disabled = true;
+  if (status) {
+    status.classList.remove("applied");
+    status.textContent = "Clearing…";
+  }
+  fetch("/api/mail-notes", {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ id, key, processed: true })
+  })
+    .then(r => r.json().then(d => ({ ok: r.ok, d })))
+    .then(({ ok, d }) => {
+      if (!ok) throw new Error(d.error || "clear failed");
+      applyNotes(d.notes, key);
+      DRAFTS[key] = "";
+      rememberDrafts();
+      render();
+    })
+    .catch(err => {
+      if (button) button.disabled = false;
+      if (status) status.textContent = err.message || "Could not clear.";
     });
 }
 bootMail();
