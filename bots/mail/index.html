@@ -99,8 +99,22 @@ function bootMail() {
     });
 }
 
+function arrivalMs(r) {
+  const t = Date.parse(r && r.date ? r.date : "");
+  return Number.isNaN(t) ? Infinity : t;
+}
+
+function byArrival(rows) {
+  return rows.slice().sort((a, b) => {
+    const da = arrivalMs(a);
+    const db = arrivalMs(b);
+    if (da !== db) return da - db;
+    return String(a.subject || "").localeCompare(String(b.subject || ""));
+  });
+}
+
 function inboxRows() {
-  return DATA.rows.filter(r => r.account === INBOX);
+  return byArrival(DATA.rows.filter(r => r.account === INBOX));
 }
 
 function visibleRows() {
