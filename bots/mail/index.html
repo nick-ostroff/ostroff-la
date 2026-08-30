@@ -34,10 +34,12 @@
     color: var(--accent); border: 1px solid #5a4a28; background: #2a2418; padding: 2px 8px;
     border-radius: 99px; margin-left: 8px; }
   .stats { color: var(--muted); font-size: 14px; margin-bottom: 14px; }
-  .pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .pills.secondary { margin-bottom: 16px; }
   .pills button { font: inherit; font-size: 14px; font-weight: 600; border-radius: 999px;
     padding: 10px 14px; min-height: 44px; border: 1px solid var(--line); background: var(--panel2); color: var(--muted); }
   .pills button.on { color: var(--text); border-color: #4a5060; background: #2a2e36; }
+  .pills.inbox button.on { color: #1a1408; background: var(--accent); border-color: var(--accent); }
   .corr { background: #2a2418; border: 1px solid #5a4a28; border-radius: 14px; padding: 14px 16px; margin-bottom: 14px; }
   .corr .who { color: var(--accent); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
   .row { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; margin: 0 0 8px; }
@@ -60,68 +62,116 @@
     <a href="/bots/mail/" class="on">Mail log</a>
     <form method="post" action="/api/logout"><button type="submit">Sign out</button></form>
   </div>
-  <div class="kicker"><a href="/bots/">Briefing</a> · Cliff<span class="sample">Sample</span></div>
+  <div class="kicker"><a href="/bots/">Briefing</a> · Cliff<span class="sample" data-sample>Live</span></div>
   <h1>Mail log</h1>
-  <p class="sub">What Cliff filed, and the rule that sorted it. No bodies.</p>
-  <div class="stats">154 filed · 45 kept · 109 archived · started Fri Aug 28</div>
-  <div class="pills" id="pills"></div>
+  <p class="sub">What Cliff filed, and the rule that sorted it. No bodies. Oldest arrival first.</p>
+  <div class="stats" data-stats>Loading…</div>
+  <div class="pills inbox" id="inboxes" aria-label="Inbox"></div>
+  <div class="pills secondary" id="pills" aria-label="Keep or archive"></div>
   <div id="corrs"></div>
   <div id="list"></div>
 <script>
-let DATA = { rows: [], corrs: [] };
+let DATA = { rows: [], corrs: [], boxes: [] };
+let INBOX = "ostroff";
+let ACTION = "all";
+
+const INBOXES = [
+  { id: "ostroff", label: "ostroff.la" },
+  { id: "pixelocity", label: "Pixelocity" }
+];
+
 function bootMail() {
   fetch("/api/morning-mail", { credentials: "include", cache: "no-store" })
     .then(r => { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
-    .then(d => { DATA = d; render(); })
+    .then(d => {
+      DATA = d;
+      DATA.rows = DATA.rows || [];
+      DATA.corrs = DATA.corrs || [];
+      if (!DATA.rows.some(r => r.account === INBOX) && DATA.rows.some(r => r.account === "pixelocity")) {
+        INBOX = "pixelocity";
+      }
+      render();
+    })
     .catch(() => {
       const el = document.getElementById("list");
       if (el) el.innerHTML = '<div class="row"><div class="subj">Mail log is not loaded yet.</div></div>';
+      document.querySelector("[data-stats]").textContent = "Mail log is not loaded yet.";
     });
 }
 
-let FILTER = "all";
+function inboxRows() {
+  return DATA.rows.filter(r => r.account === INBOX);
+}
+
+function visibleRows() {
+  const rows = inboxRows();
+  if (ACTION === "keep" || ACTION === "archive") return rows.filter(r => r.action === ACTION);
+  return rows;
+}
+
 function pills() {
+  const boxCounts = Object.fromEntries(INBOXES.map(b => [b.id, DATA.rows.filter(r => r.account === b.id).length]));
+  document.getElementById("inboxes").innerHTML = INBOXES.map(b =>
+    `<button type="button" class="${INBOX===b.id?"on":""}" data-inbox="${b.id}">${b.label} ${boxCounts[b.id]}</button>`
+  ).join("");
+
+  const rows = inboxRows();
   const counts = {
-    all: DATA.rows.length,
-    keep: DATA.rows.filter(r => r.action === "keep").length,
-    archive: DATA.rows.filter(r => r.action === "archive").length,
-    ostroff: DATA.rows.filter(r => r.account === "ostroff").length,
-    pixelocity: DATA.rows.filter(r => r.account === "pixelocity").length
+    all: rows.length,
+    keep: rows.filter(r => r.action === "keep").length,
+    archive: rows.filter(r => r.action === "archive").length
   };
-  const keys = [["all","All"],["keep","Kept"],["archive","Archived"],["ostroff","ostroff.la"],["pixelocity","Pixelocity"]];
+  const keys = [["all","All"],["keep","Kept"],["archive","Archived"]];
   document.getElementById("pills").innerHTML = keys.map(([k,l]) =>
-    `<button class="${FILTER===k?"on":""}" data-f="${k}">${l} ${counts[k]}</button>`
+    `<button type="button" class="${ACTION===k?"on":""}" data-f="${k}">${l} ${counts[k]}</button>`
   ).join("");
 }
+
 function render() {
   pills();
-  document.getElementById("corrs").innerHTML = DATA.corrs.map(c =>
+  const rows = inboxRows();
+  const keep = rows.filter(r => r.action === "keep").length;
+  const archive = rows.filter(r => r.action === "archive").length;
+  const label = (INBOXES.find(b => b.id === INBOX) || {}).label || INBOX;
+  const started = rows[0] ? rows[0].date : "";
+  document.querySelector("[data-stats]").textContent =
+    `${rows.length} filed · ${keep} kept · ${archive} archived · ${label}` +
+    (started ? ` · oldest ${esc(started)}` : "");
+
+  document.getElementById("corrs").innerHTML = (DATA.corrs || []).map(c =>
     `<div class="corr"><div class="who">Correction</div>
      <div class="from">${esc(c.from)}</div>
      <div class="subj">${esc(c.subject)}</div>
      <div class="meta">Cliff ${esc(c.cliff)} → Nick ${esc(c.nick)}. ${esc(c.note)}</div></div>`
   ).join("");
-  const rows = DATA.rows.filter(r => {
-    if (FILTER === "all") return true;
-    if (FILTER === "keep" || FILTER === "archive") return r.action === FILTER;
-    return r.account === FILTER;
-  });
-  document.getElementById("list").innerHTML = rows.map(r =>
-    `<div class="row">
-      <div class="top"><div class="from">${esc(r.from)}</div><span class="act ${r.action}">${r.action}</span></div>
-      <div class="subj">${esc(r.subject) || "(no subject)"}</div>
-      <div class="rule">${esc(r.rule) || "unspecified"}</div>
-      <div class="meta">${esc(r.account)} · ${esc(r.date)} · ${esc(r.labels)}</div>
-    </div>`
-  ).join("");
+
+  const shown = visibleRows();
+  document.getElementById("list").innerHTML = shown.length
+    ? shown.map(r =>
+      `<div class="row">
+        <div class="top"><div class="from">${esc(r.from)}</div><span class="act ${r.action}">${r.action}</span></div>
+        <div class="subj">${esc(r.subject) || "(no subject)"}</div>
+        <div class="rule">${esc(r.rule) || "unspecified"}</div>
+        <div class="meta">${esc(label)} · ${esc(r.date)} · ${esc(r.labels)}</div>
+      </div>`
+    ).join("")
+    : '<div class="row"><div class="subj">Nothing filed in this view.</div></div>';
 }
+
 function esc(s) {
   return String(s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
 }
+
+document.getElementById("inboxes").addEventListener("click", e => {
+  const b = e.target.closest("button[data-inbox]");
+  if (!b) return;
+  INBOX = b.dataset.inbox;
+  render();
+});
 document.getElementById("pills").addEventListener("click", e => {
   const b = e.target.closest("button[data-f]");
   if (!b) return;
-  FILTER = b.dataset.f;
+  ACTION = b.dataset.f;
   render();
 });
 bootMail();

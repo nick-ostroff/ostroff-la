@@ -83,7 +83,7 @@
     <div class="fyi"><div class="nm">Calendar</div><div class="meta">Empty on Pixelocity, ostroff.la, and Todoist.</div></div>
     <div class="fyi"><div class="nm">Sep 3 pickleball</div><div class="meta">Rec Park Court 4, 8–10pm. Booked. $43.58.</div></div>
     <div class="fyi"><div class="nm">Sep 7 El Segundo</div><div class="meta">Fast Track. Checkout opens Monday 8am. Dinkster has it.</div></div>
-    <div class="fyi"><div class="nm"><a href="/bots/mail/" style="color:#ececec;text-decoration:none">Mail log</a></div><div class="meta">Cliff filed 123 since Friday. 51 kept, 72 archived. Corrections on top.</div></div>
+    <div class="fyi"><div class="nm"><a href="/bots/mail/" style="color:#ececec;text-decoration:none">Mail log</a></div><div class="meta" data-mail-fyi>ostroff.la and Pixelocity, each as its own inbox.</div></div>
     <div class="fyi"><div class="nm">Later</div><div class="meta">Haircut overdue. Ancestry + Udemy still open. Amex in QuickBooks still disconnected.</div></div>
   </section>
 
@@ -164,6 +164,20 @@ document.getElementById("asks").addEventListener("click", (e) => {
 });
 
 render();
+
+fetch("/api/morning-mail", { credentials: "include", cache: "no-store" })
+  .then(r => { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+  .then(d => {
+    const el = document.querySelector("[data-mail-fyi]");
+    if (!el) return;
+    const rows = d.rows || [];
+    const ostroff = rows.filter(r => r.account === "ostroff");
+    const pixel = rows.filter(r => r.account === "pixelocity");
+    const keep = rows.filter(r => r.action === "keep").length;
+    const archive = rows.filter(r => r.action === "archive").length;
+    el.textContent = `ostroff.la ${ostroff.length} · Pixelocity ${pixel.length}. ${keep} kept, ${archive} archived.`;
+  })
+  .catch(() => {});
 </script>
 </body>
 </html>

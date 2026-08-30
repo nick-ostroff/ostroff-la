@@ -4,4 +4,5 @@
 .env.local
 node_modules
 .data
+gmail-batch/
 morning/mail-data.json

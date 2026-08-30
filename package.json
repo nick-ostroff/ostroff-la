@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test lib/auth.test.js"
+    "test": "node --test lib/auth.test.js lib/mail-log.test.js",
+    "mail-json": "node scripts/build-mail-json.js"
   }
 }
