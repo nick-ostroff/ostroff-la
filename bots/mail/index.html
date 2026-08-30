@@ -308,7 +308,9 @@ function rowHtml(r) {
   const latestSaved = saved.length ? saved[saved.length - 1] : null;
   const applied = !!(latestSaved && noteProcessed(latestSaved) && !latestOpen);
   const latest = latestOpen ? latestOpen.note : (applied ? "" : latestNote(r));
-  const draft = Object.prototype.hasOwnProperty.call(DRAFTS, r.key) ? DRAFTS[r.key] : latest;
+  const appliedText = applied && latestSaved ? latestSaved.note : "";
+  let draft = Object.prototype.hasOwnProperty.call(DRAFTS, r.key) ? DRAFTS[r.key] : latest;
+  if (applied && String(draft || "").trim() === String(appliedText || "").trim()) draft = "";
   const showClear = ACTION === "notes" && !!latestOpen;
   const statusClass = applied ? "status applied" : "status";
   const statusText = applied ? "Applied" : "";
@@ -466,8 +468,8 @@ function clearNote(form) {
     .then(({ ok, d }) => {
       if (!ok) throw new Error(d.error || "clear failed");
       applyNotes(d.notes, key);
-      DRAFTS[key] = "";
       rememberDrafts();
+      DRAFTS[key] = "";
       render();
     })
     .catch(err => {
