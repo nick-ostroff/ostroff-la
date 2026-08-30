@@ -58,8 +58,9 @@
   .from { font-weight: 650; max-width: 16em; }
   .subj { max-width: 22em; }
   .labels { max-width: 18em; }
-  .label-list { display: flex; flex-wrap: wrap; gap: 4px; }
+  .label-list { display: flex; flex-wrap: wrap; gap: 4px; align-items: baseline; }
   .gmail-label { color: var(--accent); font-size: 12px; letter-spacing: .02em; word-break: break-word; }
+  .label-sep { color: var(--muted); font-size: 12px; }
   .rule-id { color: var(--muted); font-size: 11px; margin-top: 4px; word-break: break-word; }
   .act { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
   .act.keep { background: #1e3326; color: var(--on); }
@@ -266,7 +267,7 @@ function splitLabels(raw) {
 function labelCell(r) {
   const labels = splitLabels(r.labels);
   const primary = labels.length
-    ? `<div class="label-list">${labels.map(l => `<span class="gmail-label">${esc(l)}</span>`).join("")}</div>`
+    ? `<div class="label-list">${labels.map(l => `<span class="gmail-label">${esc(l)}</span>`).join("<span class=\"label-sep\">·</span>")}</div>`
     : `<div class="gmail-label">—</div>`;
   const rule = r.rule ? `<div class="rule-id">${esc(r.rule)}</div>` : "";
   return primary + rule;
