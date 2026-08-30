@@ -1,8 +1,10 @@
 // Vercel Routing Middleware
-// - ostroff.la /trips and /tickets: family passcode cookie (FAMILY_TOKEN)
-// - grok.ostroff.la: HTTP basic auth (user nick, password MORNING_BASIC_PASSWORD)
-//   Pages: / and /mail. Password is env-only. Never commit it. Fail closed if unset.
-// - ostroff.la /morning and /api/morning-mail: same basic auth (gated path, no homepage link).
+// - Existing subdomains 301 onto ostroff.la (tickets.ostroff.la is kept; do not delete).
+// - Private paths: /trips, /tickets, /bots, /morning + /api/morning-mail
+// - Admin session cookie (ostroff_admin) once ADMIN_SESSION_SECRET is set.
+// - Until then, nick / MORNING_BASIC_PASSWORD basic auth is the fail-closed stopgap.
+
+import { readSession, sessionSecret } from './lib/session.js';
 
 export const config = {
   matcher: [
@@ -12,20 +14,18 @@ export const config = {
     '/robots.txt',
     '/favicon.svg',
     '/favicon.ico',
-    '/api/morning-mail',
-    '/morning',
-    '/morning/:path*',
-    '/trips/:path*',
-    '/tickets/:path*',
+    '/((?!assets/|images/|tickets/teams/|favicon\\.svg).*)',
   ],
 };
 
 function hostOf(req) {
-  return (req.headers.get('host') || '').split(':')[0].toLowerCase();
+  const header = (req.headers.get('host') || '').split(':')[0].toLowerCase();
+  if (header) return header;
+  try { return new URL(req.url).hostname.toLowerCase(); } catch { return ''; }
 }
 
-function isGrok(req) {
-  return hostOf(req) === 'grok.ostroff.la';
+function apex(path, search = '') {
+  return `https://ostroff.la${path}${search}`;
 }
 
 function timingSafeEqual(a, b) {
@@ -45,18 +45,11 @@ function unauthorized() {
   });
 }
 
-function notFound() {
-  return new Response('Not found', {
-    status: 404,
-    headers: { 'Cache-Control': 'no-store' },
-  });
-}
-
 function gateMorning(req) {
   const pass = process.env.MORNING_BASIC_PASSWORD || '';
   const user = process.env.MORNING_BASIC_USER || 'nick';
   if (!pass) {
-    return new Response('Morning dash is locked until the password is set.', {
+    return new Response('Private pages are locked until admin login or the stopgap password is set.', {
       status: 503,
       headers: { 'Cache-Control': 'no-store' },
     });
@@ -76,44 +69,72 @@ function gateMorning(req) {
   if (!timingSafeEqual(u, user) || !timingSafeEqual(p, pass)) return unauthorized();
 }
 
-function grokAllowed(path) {
+function isPrivatePath(path) {
   return (
-    path === '/' ||
-    path === '/mail' ||
-    path === '/mail.html' ||
-    path === '/robots.txt' ||
-    path === '/favicon.svg' ||
-    path === '/favicon.ico' ||
     path === '/api/morning-mail' ||
-    path === '/morning' ||
-    path.startsWith('/morning/')
+    path === '/trips' || path.startsWith('/trips/') ||
+    path === '/tickets' || path.startsWith('/tickets/') ||
+    path === '/bots' || path.startsWith('/bots/') ||
+    path === '/morning' || path.startsWith('/morning/')
   );
 }
 
-export default function middleware(req) {
+function deny(req, url, path) {
+  if (path.startsWith('/api/')) {
+    return new Response(JSON.stringify({ error: 'auth required' }), {
+      status: 401,
+      headers: {
+        'content-type': 'application/json; charset=utf-8',
+        'Cache-Control': 'no-store',
+      },
+    });
+  }
+  const to = new URL('/login/', url.origin);
+  to.searchParams.set('next', path.endsWith('/') ? path : `${path}/`);
+  return Response.redirect(to.toString(), 302);
+}
+
+function subdomainTarget(host, path) {
+  if (host === 'grok.ostroff.la') {
+    if (path === '/mail' || path === '/mail.html' || path === '/morning/mail.html' || path === '/morning/mail') {
+      return '/bots/mail/';
+    }
+    if (path === '/api/morning-mail') return '/api/morning-mail';
+    if (path === '/' || path === '/morning' || path === '/morning/') return '/bots/';
+    if (path.startsWith('/morning/')) return `/bots/${path.slice('/morning/'.length)}`;
+    if (path.startsWith('/bots')) return path;
+    return '/bots/';
+  }
+  if (host === 'tickets.ostroff.la') {
+    if (path === '/' || path === '') return '/tickets/';
+    if (path.startsWith('/tickets') || path.startsWith('/api/')) return path;
+    return `/tickets${path.startsWith('/') ? path : `/${path}`}`;
+  }
+  if (host === 'trips.ostroff.la') {
+    if (path === '/' || path === '') return '/trips/';
+    if (path.startsWith('/trips') || path.startsWith('/api/')) return path;
+    return `/trips${path.startsWith('/') ? path : `/${path}`}`;
+  }
+  return null;
+}
+
+export default async function middleware(req) {
   const url = new URL(req.url);
   const path = url.pathname;
+  const dest = subdomainTarget(hostOf(req), path);
+  if (dest) return Response.redirect(apex(dest, url.search), 301);
 
-  if (isGrok(req)) {
-    if (!grokAllowed(path)) return notFound();
-    const blocked = gateMorning(req);
-    if (blocked) return blocked;
-    return;
+  if (path === '/mail' || path === '/mail.html') {
+    return Response.redirect(new URL('/bots/mail/', url.origin).toString(), 301);
   }
 
-  if (path === '/morning' || path.startsWith('/morning/') || path === '/api/morning-mail') {
-    const blocked = gateMorning(req);
-    if (blocked) return blocked;
-    return;
-  }
+  if (!isPrivatePath(path)) return;
 
-  if (!(path.startsWith('/trips') || path.startsWith('/tickets'))) return;
+  const session = await readSession(req.headers.get('cookie') || '');
+  if (session) return;
 
-  const token = process.env.FAMILY_TOKEN;
-  const cookie = req.headers.get('cookie') || '';
-  const ok = Boolean(token) && cookie.split(';').some((c) => c.trim() === `ostroff_family=${token}`);
-  if (ok) return;
-  const to = new URL('/unlock/', url.origin);
-  to.searchParams.set('next', url.pathname);
-  return Response.redirect(to.toString(), 302);
+  if (sessionSecret()) return deny(req, url, path);
+
+  const blocked = gateMorning(req);
+  if (blocked) return blocked;
 }

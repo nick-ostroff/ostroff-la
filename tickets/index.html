@@ -14,9 +14,9 @@
 <body>
   <div class="page section-tickets">
     <div class="topline eyebrow">
-      <span>Family Section · Unlocked</span>
+      <span>Admin</span>
       <span data-today></span>
-      <span style="color:var(--gold)">tickets.ostroff.la</span>
+      <span style="color:var(--gold)">ostroff.la</span>
     </div>
 
     <header class="masthead compact">
@@ -24,10 +24,12 @@
       <p class="tagline">Paid = invoice pair. Ask = StubHub section × 2. Opportunity = ask − paid. Fees extra.</p>
     </header>
 
-    <nav class="nav" aria-label="Site">
+    <nav class="nav" aria-label="Admin">
       <a href="/">Home</a>
-      <a href="/trips/">Trips <svg width="9" height="11" viewBox="0 0 9 11" aria-hidden="true"><rect x="0.5" y="4.5" width="8" height="6" rx="1" fill="none" stroke="currentColor"/><path d="M2.5 4.5V3a2 2 0 0 1 4 0v1.5" fill="none" stroke="currentColor"/></svg></a>
+      <a href="/trips/">Trips</a>
       <a href="/tickets/" aria-current="page">Tickets</a>
+      <a href="/bots/">Bots</a>
+      <form method="post" action="/api/logout" class="signout"><button type="submit">Sign out</button></form>
     </nav>
 
     <div class="season">

@@ -3,6 +3,8 @@ Allow: /
 Disallow: /trips/
 Disallow: /tickets/
 Disallow: /unlock/
+Disallow: /login/
+Disallow: /bots/
 Disallow: /api/
 Disallow: /morning/
 

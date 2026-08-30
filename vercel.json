@@ -1,24 +1,72 @@
 {
-  "rewrites": [
+  "redirects": [
     {
       "source": "/",
       "has": [{ "type": "host", "value": "grok.ostroff.la" }],
-      "destination": "/morning/index.html"
+      "destination": "https://ostroff.la/bots/",
+      "permanent": true
     },
     {
       "source": "/mail",
       "has": [{ "type": "host", "value": "grok.ostroff.la" }],
-      "destination": "/morning/mail.html"
+      "destination": "https://ostroff.la/bots/mail/",
+      "permanent": true
     },
     {
       "source": "/mail.html",
       "has": [{ "type": "host", "value": "grok.ostroff.la" }],
-      "destination": "/morning/mail.html"
+      "destination": "https://ostroff.la/bots/mail/",
+      "permanent": true
     },
     {
-      "source": "/robots.txt",
+      "source": "/morning",
       "has": [{ "type": "host", "value": "grok.ostroff.la" }],
-      "destination": "/morning/robots.txt"
+      "destination": "https://ostroff.la/bots/",
+      "permanent": true
+    },
+    {
+      "source": "/morning/:path*",
+      "has": [{ "type": "host", "value": "grok.ostroff.la" }],
+      "destination": "https://ostroff.la/bots/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "tickets.ostroff.la" }],
+      "destination": "https://ostroff.la/tickets/",
+      "permanent": true
+    },
+    {
+      "source": "/tickets/:path*",
+      "has": [{ "type": "host", "value": "tickets.ostroff.la" }],
+      "destination": "https://ostroff.la/tickets/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/g/:path*",
+      "has": [{ "type": "host", "value": "tickets.ostroff.la" }],
+      "destination": "https://ostroff.la/tickets/g/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/mail",
+      "destination": "/bots/mail/",
+      "permanent": true
+    },
+    {
+      "source": "/mail.html",
+      "destination": "/bots/mail/",
+      "permanent": true
+    },
+    {
+      "source": "/morning",
+      "destination": "/bots/",
+      "permanent": true
+    },
+    {
+      "source": "/morning/mail.html",
+      "destination": "/bots/mail/",
+      "permanent": true
     }
   ]
 }

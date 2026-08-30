@@ -40,12 +40,6 @@
       <p class="tagline">The Ostroffs, in Los Angeles.</p>
     </header>
 
-    <nav class="nav" aria-label="Site">
-      <a href="/" aria-current="page">Home</a>
-      <a href="/trips/">Trips <svg width="9" height="11" viewBox="0 0 9 11" aria-hidden="true"><rect x="0.5" y="4.5" width="8" height="6" rx="1" fill="none" stroke="currentColor"/><path d="M2.5 4.5V3a2 2 0 0 1 4 0v1.5" fill="none" stroke="currentColor"/></svg></a>
-      <a href="/tickets/">Tickets <svg width="9" height="11" viewBox="0 0 9 11" aria-hidden="true"><rect x="0.5" y="4.5" width="8" height="6" rx="1" fill="none" stroke="currentColor"/><path d="M2.5 4.5V3a2 2 0 0 1 4 0v1.5" fill="none" stroke="currentColor"/></svg></a>
-    </nav>
-
     <main class="people">
       <article>
         <div class="person-head">
@@ -87,30 +81,6 @@
       </div>
     </section>
 
-    <section class="family" aria-label="Family sections">
-      <div class="label">Family Sections · Passcode Required</div>
-      <div class="family-grid">
-        <div class="family-card trips">
-          <h3>trips.ostroff.la</h3>
-          <p>Itineraries, ideas by month, family travel drafts.</p>
-          <form method="post" action="/api/unlock">
-            <input type="hidden" name="next" value="/trips/" />
-            <input type="password" name="code" placeholder="· · · ·" autocomplete="off" aria-label="Passcode for Trips" required />
-            <button type="submit" class="btn solid">Enter code</button>
-          </form>
-        </div>
-        <div class="family-card tickets">
-          <h3>tickets.ostroff.la</h3>
-          <p>Season seats, asks, and sale tracking at SoFi.</p>
-          <form method="post" action="/api/unlock">
-            <input type="hidden" name="next" value="/tickets/" />
-            <input type="password" name="code" placeholder="· · · ·" autocomplete="off" aria-label="Passcode for Tickets" required />
-            <button type="submit" class="btn solid">Enter code</button>
-          </form>
-        </div>
-      </div>
-    </section>
-
     <footer class="foot eyebrow">
       <span>ostroff.la</span>
       <span><a href="mailto:nick@ostroff.la">nick@</a> · <a href="mailto:petero@ostroff.la">petero@</a></span>
@@ -122,6 +92,22 @@
     (() => {
       const today = document.querySelector('[data-today]');
       if (today) today.textContent = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).format(new Date());
+    })();
+
+    (async () => {
+      try {
+        const res = await fetch('/api/me', { credentials: 'same-origin', cache: 'no-store' });
+        if (!res.ok) return;
+        const nav = document.createElement('nav');
+        nav.className = 'nav';
+        nav.setAttribute('aria-label', 'Admin');
+        nav.innerHTML = `<a href="/" aria-current="page">Home</a>
+          <a href="/trips/">Trips</a>
+          <a href="/tickets/">Tickets</a>
+          <a href="/bots/">Bots</a>
+          <form method="post" action="/api/logout" class="signout"><button type="submit">Sign out</button></form>`;
+        document.querySelector('.masthead')?.after(nav);
+      } catch {}
     })();
 
     (async () => {

@@ -122,6 +122,18 @@ button { font: inherit; cursor: pointer; }
 .nav a { color: var(--ink-mute); display: inline-flex; gap: 6px; align-items: center; padding-bottom: 3px; border-bottom: 2px solid transparent; }
 .nav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--accent); }
 .nav svg { flex: none; }
+.nav .signout { display: inline; margin: 0; }
+.nav .signout button {
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  border: 0;
+  background: none;
+  color: var(--ink-mute);
+  padding: 0 0 3px;
+  border-bottom: 2px solid transparent;
+}
+.nav .signout button:hover { opacity: 0.7; }
 
 /* compact header for inner pages */
 .bar {
@@ -259,7 +271,8 @@ button { font: inherit; cursor: pointer; }
 .brief h3 { font-family: var(--serif); font-weight: 600; font-size: 18px; line-height: 1.25; margin-top: 4px; }
 .feed-empty { font-family: var(--serif); font-style: italic; color: var(--ink-mute); }
 .more { display: flex; justify-content: center; margin-top: 24px; }
-.more[hidden] { display: none; }
+.more[hidden],
+[hidden] { display: none !important; }
 .btn {
   font-family: var(--sans);
   font-weight: 600;
@@ -503,9 +516,14 @@ a.match { border-bottom: 1px solid var(--dot); }
 .unlock h1 { font-family: var(--serif); font-weight: 600; font-size: 40px; letter-spacing: -0.02em; }
 .unlock p { font-family: var(--serif); font-style: italic; color: var(--ink-soft); margin: 10px 0 28px; }
 .unlock form { display: flex; gap: 8px; justify-content: center; }
+.unlock form.stack { flex-direction: column; align-items: stretch; max-width: 280px; margin: 0 auto; gap: 10px; }
+.unlock [hidden],
+.unlock form[hidden] { display: none !important; }
 .unlock input {
   font-family: var(--sans); font-size: 16px; letter-spacing: 0.2em; text-align: center;
   border: 1px solid var(--dot); padding: 10px 14px; width: 180px; outline: none; color: var(--ink);
 }
+.unlock form.stack input { width: 100%; letter-spacing: 0.04em; text-align: left; }
 .unlock input:focus { border-color: var(--ink); }
 .unlock .err { color: var(--red); font-style: normal; font-family: var(--sans); font-size: 13px; margin-top: 14px; }
+.unlock .hint { font-style: normal; font-family: var(--sans); font-size: 13px; color: var(--ink-soft); margin-top: 14px; }
