@@ -51,6 +51,20 @@
   .subj { margin-top: 4px; }
   .rule { color: var(--accent); font-size: 12px; letter-spacing: .04em; margin-top: 6px; }
   .meta { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .row .corr { margin: 12px 0 0; }
+  .note-form { margin-top: 12px; display: flex; gap: 8px; align-items: flex-end; }
+  .note-form textarea {
+    flex: 1; min-height: 68px; resize: vertical; font: inherit;
+    background: var(--panel2); color: var(--text);
+    border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px;
+  }
+  .note-form button {
+    font: inherit; font-size: 13px; font-weight: 600; letter-spacing: .04em;
+    min-height: 44px; padding: 8px 14px; border-radius: 10px; white-space: nowrap;
+    color: #1a1408; background: var(--accent); border: 1px solid var(--accent);
+  }
+  .note-form button:disabled { opacity: .6; }
+  .note-form .status { color: var(--muted); font-size: 13px; min-width: 4.5em; }
 </style>
 </head>
 <body>
@@ -64,14 +78,14 @@
   </div>
   <div class="kicker"><a href="/bots/">Briefing</a> · Cliff<span class="sample" data-sample>Live</span></div>
   <h1>Mail log</h1>
-  <p class="sub">What Cliff filed, and the rule that sorted it. No bodies. Oldest arrival first.</p>
+  <p class="sub">What Cliff filed, and the rule that sorted it. Leave a note if the filing should change. No bodies. Oldest arrival first.</p>
   <div class="stats" data-stats>Loading…</div>
   <div class="pills inbox" id="inboxes" aria-label="Inbox"></div>
   <div class="pills secondary" id="pills" aria-label="Keep or archive"></div>
   <div id="corrs"></div>
   <div id="list"></div>
 <script>
-let DATA = { rows: [], corrs: [], boxes: [] };
+let DATA = { rows: [], corrs: [], boxes: [], notes: [] };
 let INBOX = "ostroff";
 let ACTION = "all";
 
@@ -87,6 +101,7 @@ function bootMail() {
       DATA = d;
       DATA.rows = DATA.rows || [];
       DATA.corrs = DATA.corrs || [];
+      DATA.notes = DATA.notes || [];
       if (!DATA.rows.some(r => r.account === INBOX) && DATA.rows.some(r => r.account === "pixelocity")) {
         INBOX = "pixelocity";
       }
@@ -161,15 +176,41 @@ function render() {
 
   const shown = visibleRows();
   document.getElementById("list").innerHTML = shown.length
-    ? shown.map(r =>
-      `<div class="row">
+    ? shown.map(r => rowHtml(r, label))
+    : '<div class="row"><div class="subj">Nothing filed in this view.</div></div>';
+}
+
+function rowNotes(r) {
+  if (r.notes && r.notes.length) return r.notes;
+  const k = r.key || [r.account || "", r.date || "", r.from || "", r.subject || ""].join("\t");
+  return (DATA.notes || []).filter(n => (n.key || "") === k);
+}
+
+function rowHtml(r, label) {
+  const notes = rowNotes(r);
+  const saved = notes.map(n =>
+    `<div class="corr"><div class="who">Note</div>
+     <div class="subj">${esc(n.note)}</div>
+     <div class="meta">${esc(n.by || "nick")}${n.at ? ` · ${esc(fmtWhen(n.at))}` : ""}</div></div>`
+  ).join("");
+  return `<div class="row" data-key="${esc(r.key || "")}">
         <div class="top"><div class="from">${esc(r.from)}</div><span class="act ${r.action}">${r.action}</span></div>
         <div class="subj">${esc(r.subject) || "(no subject)"}</div>
         <div class="rule">${esc(r.rule) || "unspecified"}</div>
         <div class="meta">${esc(label)} · ${esc(r.date)} · ${esc(r.labels)}</div>
-      </div>`
-    ).join("")
-    : '<div class="row"><div class="subj">Nothing filed in this view.</div></div>';
+        ${saved}
+        <form class="note-form" data-key="${esc(r.key || "")}">
+          <textarea name="note" rows="2" maxlength="4000" placeholder="What should Cliff change? Keep vs archive, rule, folder…"></textarea>
+          <button type="submit">Save note</button>
+          <span class="status" aria-live="polite"></span>
+        </form>
+      </div>`;
+}
+
+function fmtWhen(iso) {
+  const t = Date.parse(iso);
+  if (Number.isNaN(t)) return iso;
+  return new Date(t).toLocaleString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
 function esc(s) {
@@ -188,6 +229,57 @@ document.getElementById("pills").addEventListener("click", e => {
   ACTION = b.dataset.f;
   render();
 });
+document.getElementById("list").addEventListener("submit", e => {
+  const form = e.target.closest("form.note-form");
+  if (!form) return;
+  e.preventDefault();
+  saveNote(form);
+});
+
+function saveNote(form) {
+  const key = form.dataset.key;
+  const row = DATA.rows.find(r => (r.key || "") === key);
+  if (!row) return;
+  const textarea = form.querySelector("textarea");
+  const status = form.querySelector(".status");
+  const button = form.querySelector("button");
+  const note = String(textarea.value || "").trim();
+  if (!note) {
+    if (status) status.textContent = "Type a note first.";
+    return;
+  }
+  if (button) button.disabled = true;
+  if (status) status.textContent = "Saving…";
+  fetch("/api/mail-notes", {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({
+      account: row.account,
+      from: row.from,
+      subject: row.subject,
+      date: row.date,
+      action: row.action,
+      rule: row.rule,
+      labels: row.labels,
+      key: row.key,
+      note
+    })
+  })
+    .then(r => r.json().then(d => ({ ok: r.ok, d })))
+    .then(({ ok, d }) => {
+      if (!ok) throw new Error(d.error || "save failed");
+      DATA.notes = d.notes || DATA.notes || [];
+      DATA.rows = DATA.rows.map(r => r.key === key
+        ? { ...r, notes: (r.notes || []).concat([d.note]) }
+        : r);
+      render();
+    })
+    .catch(err => {
+      if (button) button.disabled = false;
+      if (status) status.textContent = err.message || "Could not save.";
+    });
+}
 bootMail();
 </script>
 </body>
