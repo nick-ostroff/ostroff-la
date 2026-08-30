@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin sign in — Ostroff.LA</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..800;1,6..72,400..800&family=Archivo:wght@400..700&family=Libre+Franklin:wght@300..700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/site.css" />
+</head>
+<body>
+  <div class="page">
+    <div class="topline eyebrow">
+      <span>Admin</span>
+      <span></span>
+      <span>ostroff.la</span>
+    </div>
+    <div class="unlock">
+      <h1 class="serif">Ostroff<span style="color:var(--red)">.</span>la</h1>
+      <p data-lead>Private pages. Sign in with your own admin account.</p>
+
+      <form method="post" action="/api/login" class="stack" data-login>
+        <input type="hidden" name="next" value="/tickets/" data-next />
+        <input type="text" name="username" autocomplete="username" placeholder="Username" aria-label="Username" autofocus required />
+        <input type="password" name="password" autocomplete="current-password" placeholder="Password" aria-label="Password" required />
+        <button type="submit" class="btn">Sign in</button>
+      </form>
+      <p class="err" data-err hidden>That username or password didn’t match.</p>
+      <p class="err" data-locked hidden>Admin login is locked until ADMIN_SESSION_SECRET is set.</p>
+
+      <form class="stack" data-create hidden>
+        <input type="text" name="username" autocomplete="username" placeholder="Username" aria-label="New username" required />
+        <input type="password" name="password" autocomplete="new-password" placeholder="Password (8+ characters)" aria-label="New password" required minlength="8" />
+        <input type="password" name="setup" autocomplete="off" placeholder="Setup code" aria-label="Setup code" data-setup />
+        <button type="submit" class="btn solid">Create admin</button>
+      </form>
+      <p class="err" data-create-err hidden></p>
+      <p class="hint" data-create-ok hidden></p>
+
+      <div data-signed-in hidden>
+        <nav class="nav" aria-label="Admin" style="border:0; padding:8px 0 20px">
+          <a href="/trips/">Trips</a>
+          <a href="/tickets/">Tickets</a>
+          <a href="/bots/">Bots</a>
+          <a href="/bots/mail/">Mail log</a>
+        </nav>
+        <form method="post" action="/api/logout"><button type="submit" class="btn">Sign out</button></form>
+      </div>
+
+      <p style="margin-top:28px"><a href="/" class="eyebrow">← Back to ostroff.la</a></p>
+    </div>
+  </div>
+  <script>
+    const q = new URLSearchParams(location.search);
+    const next = q.get('next') || '';
+    if (/^\/(trips|tickets|bots|morning)(\/|$)/.test(next)) document.querySelector('[data-next]').value = next;
+    if (q.get('err') === '1') document.querySelector('[data-err]').hidden = false;
+    if (q.get('err') === 'locked') document.querySelector('[data-locked]').hidden = false;
+
+    const login = document.querySelector('[data-login]');
+    const create = document.querySelector('[data-create]');
+    const lead = document.querySelector('[data-lead]');
+    const signed = document.querySelector('[data-signed-in]');
+    const createErr = document.querySelector('[data-create-err]');
+    const createOk = document.querySelector('[data-create-ok]');
+    const setup = document.querySelector('[data-setup]');
+    let me = null;
+
+    (async () => {
+      try {
+        const r = await fetch('/api/me', { credentials: 'same-origin', cache: 'no-store' });
+        if (r.ok) me = await r.json();
+      } catch {}
+
+      let empty = false;
+      try {
+        const r = await fetch('/api/users', { credentials: 'same-origin', cache: 'no-store' });
+        const body = await r.json().catch(() => ({}));
+        empty = Boolean(body.empty) || (r.ok && !(body.users || []).length);
+      } catch {}
+
+      if (me && me.username) {
+        login.hidden = true;
+        signed.hidden = false;
+        create.hidden = false;
+        setup.hidden = true;
+        setup.required = false;
+        lead.textContent = `Signed in as ${me.username}. Add another admin below, or open a section.`;
+        return;
+      }
+
+      if (empty) {
+        create.hidden = false;
+        setup.hidden = false;
+        setup.required = true;
+        lead.textContent = 'Create the first admin. The setup code is the existing Morning password (or ADMIN_SETUP_TOKEN).';
+      } else {
+        create.hidden = true;
+        setup.required = false;
+        lead.textContent = 'Private pages. Sign in with your own admin account.';
+      }
+    })();
+
+    create.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      createErr.hidden = true;
+      createOk.hidden = true;
+      const data = Object.fromEntries(new FormData(create).entries());
+      const res = await fetch('/api/users', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(data),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        createErr.textContent = body.error || 'Could not create that user.';
+        createErr.hidden = false;
+        return;
+      }
+      if (body.persisted === 'file') {
+        createOk.textContent = `Created ${body.user.username}. Saved locally.`;
+      } else {
+        createOk.textContent = `Created ${body.user.username}. To keep this account on Vercel, set ADMIN_USERS_JSON to the value copied to your clipboard.`;
+        if (body.envSnippet) navigator.clipboard?.writeText(body.envSnippet).catch(() => {});
+      }
+      createOk.hidden = false;
+      create.reset();
+      if (!me) location.assign(document.querySelector('[data-next]').value || '/tickets/');
+    });
+  </script>
+</body>
+</html>

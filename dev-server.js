@@ -2,6 +2,7 @@ import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import middleware from './middleware.js';
 
 const root = fileURLToPath(new URL('.', import.meta.url));
 const port = Number(process.env.PORT) || 4173;
@@ -56,7 +57,24 @@ async function handleApi(req, res, pathname, query) {
   }
 }
 
+async function applyMiddleware(req, res) {
+  const url = `http://${req.headers.host}${req.url}`;
+  const headers = new Headers();
+  for (const [k, v] of Object.entries(req.headers)) {
+    if (v == null) continue;
+    headers.set(k, Array.isArray(v) ? v.join(', ') : String(v));
+  }
+  const out = await middleware(new Request(url, { method: req.method, headers }));
+  if (!out) return false;
+  const outHeaders = {};
+  out.headers.forEach((value, key) => { outHeaders[key] = value; });
+  res.writeHead(out.status, outHeaders);
+  res.end(Buffer.from(await out.arrayBuffer()));
+  return true;
+}
+
 createServer(async (req, res) => {
+  if (await applyMiddleware(req, res)) return;
   const url = new URL(req.url, `http://${req.headers.host}`);
   if (url.pathname.startsWith('/api/')) {
     const name = url.pathname.slice(5).replace(/\/$/, '');

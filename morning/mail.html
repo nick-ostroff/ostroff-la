@@ -1,110 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="robots" content="noindex, nofollow" />
-<title>Mail log · Grok Crew</title>
-<style>
-  :root {
-    --bg: #111214; --panel: #1a1c20; --panel2: #22252b; --line: #2c3038;
-    --text: #ececec; --muted: #9aa0aa; --accent: #d4a24a; --on: #5dba7a; --off: #8a8f98;
-  }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text);
-    font: 16px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; }
-  body { padding: 24px 18px 64px; max-width: 820px; margin: 0 auto; }
-  a { color: var(--accent); text-decoration: none; }
-  .kicker { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
-  h1 { margin: 6px 0 4px; font-size: 28px; font-weight: 650; }
-  .sub { color: var(--muted); margin-bottom: 16px; }
-  .sample { display: inline-block; font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
-    color: var(--accent); border: 1px solid #5a4a28; background: #2a2418; padding: 2px 8px;
-    border-radius: 99px; margin-left: 8px; }
-  .stats { color: var(--muted); font-size: 14px; margin-bottom: 14px; }
-  .pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-  .pills button { font: inherit; font-size: 14px; font-weight: 600; border-radius: 999px;
-    padding: 10px 14px; min-height: 44px; border: 1px solid var(--line); background: var(--panel2); color: var(--muted); }
-  .pills button.on { color: var(--text); border-color: #4a5060; background: #2a2e36; }
-  .corr { background: #2a2418; border: 1px solid #5a4a28; border-radius: 14px; padding: 14px 16px; margin-bottom: 14px; }
-  .corr .who { color: var(--accent); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
-  .row { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; margin: 0 0 8px; }
-  .row .top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
-  .from { font-weight: 650; }
-  .act { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; }
-  .act.keep { background: #1e3326; color: var(--on); }
-  .act.archive { background: #2a2a2a; color: var(--off); }
-  .subj { margin-top: 4px; }
-  .rule { color: var(--accent); font-size: 12px; letter-spacing: .04em; margin-top: 6px; }
-  .meta { color: var(--muted); font-size: 13px; margin-top: 4px; }
-</style>
+  <meta charset="utf-8" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta http-equiv="refresh" content="0;url=/bots/mail/" />
+  <title>Bots · Mail log</title>
 </head>
 <body>
-  <div class="kicker"><a href="/">Morning</a> · Cliff<span class="sample">Sample</span></div>
-  <h1>Mail log</h1>
-  <p class="sub">What Cliff filed, and the rule that sorted it. No bodies.</p>
-  <div class="stats">154 filed · 45 kept · 109 archived · started Fri Aug 28</div>
-  <div class="pills" id="pills"></div>
-  <div id="corrs"></div>
-  <div id="list"></div>
-<script>
-let DATA = { rows: [], corrs: [] };
-function bootMail() {
-  fetch("/api/morning-mail", { credentials: "include", cache: "no-store" })
-    .then(r => { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
-    .then(d => { DATA = d; render(); })
-    .catch(() => {
-      const el = document.getElementById("list");
-      if (el) el.innerHTML = '<div class="row"><div class="subj">Mail log is not loaded yet.</div></div>';
-    });
-}
-
-let FILTER = "all";
-function pills() {
-  const counts = {
-    all: DATA.rows.length,
-    keep: DATA.rows.filter(r => r.action === "keep").length,
-    archive: DATA.rows.filter(r => r.action === "archive").length,
-    ostroff: DATA.rows.filter(r => r.account === "ostroff").length,
-    pixelocity: DATA.rows.filter(r => r.account === "pixelocity").length
-  };
-  const keys = [["all","All"],["keep","Kept"],["archive","Archived"],["ostroff","ostroff.la"],["pixelocity","Pixelocity"]];
-  document.getElementById("pills").innerHTML = keys.map(([k,l]) =>
-    `<button class="${FILTER===k?"on":""}" data-f="${k}">${l} ${counts[k]}</button>`
-  ).join("");
-}
-function render() {
-  pills();
-  document.getElementById("corrs").innerHTML = DATA.corrs.map(c =>
-    `<div class="corr"><div class="who">Correction</div>
-     <div class="from">${esc(c.from)}</div>
-     <div class="subj">${esc(c.subject)}</div>
-     <div class="meta">Cliff ${esc(c.cliff)} → Nick ${esc(c.nick)}. ${esc(c.note)}</div></div>`
-  ).join("");
-  const rows = DATA.rows.filter(r => {
-    if (FILTER === "all") return true;
-    if (FILTER === "keep" || FILTER === "archive") return r.action === FILTER;
-    return r.account === FILTER;
-  });
-  document.getElementById("list").innerHTML = rows.map(r =>
-    `<div class="row">
-      <div class="top"><div class="from">${esc(r.from)}</div><span class="act ${r.action}">${r.action}</span></div>
-      <div class="subj">${esc(r.subject) || "(no subject)"}</div>
-      <div class="rule">${esc(r.rule) || "unspecified"}</div>
-      <div class="meta">${esc(r.account)} · ${esc(r.date)} · ${esc(r.labels)}</div>
-    </div>`
-  ).join("");
-}
-function esc(s) {
-  return String(s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
-}
-document.getElementById("pills").addEventListener("click", e => {
-  const b = e.target.closest("button[data-f]");
-  if (!b) return;
-  FILTER = b.dataset.f;
-  render();
-});
-bootMail();
-</script>
+  <p><a href="/bots/mail/">Continue to the mail log</a></p>
+  <script>location.replace("/bots/mail/");</script>
 </body>
 </html>

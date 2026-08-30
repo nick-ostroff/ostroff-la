@@ -1,6 +1,6 @@
 window.TicketSales = {
   KEY: "tickets.ostroff.la:sales",
-  API: "https://tickets.ostroff.la/api/sales",
+  API: "/api/sales",
   today() {
     return new Intl.DateTimeFormat("en-CA", {
       timeZone: "America/Los_Angeles",

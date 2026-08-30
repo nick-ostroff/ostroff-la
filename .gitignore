@@ -3,4 +3,5 @@
 .env
 .env.local
 node_modules
+.data
 morning/mail-data.json

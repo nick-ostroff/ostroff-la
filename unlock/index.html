@@ -3,38 +3,19 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Family passcode — Ostroff.LA</title>
+  <title>Sign in — Ostroff.LA</title>
   <meta name="robots" content="noindex, nofollow" />
+  <meta http-equiv="refresh" content="0;url=/login/" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..800;1,6..72,400..800&family=Archivo:wght@400..700&family=Libre+Franklin:wght@300..700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/site.css" />
 </head>
 <body>
-  <div class="page">
-    <div class="topline eyebrow">
-      <span>Family Section</span>
-      <span></span>
-      <span>Passcode required</span>
-    </div>
-    <div class="unlock">
-      <h1 class="serif">Ostroff<span style="color:var(--red)">.</span>la</h1>
-      <p>This section is for family. Enter the passcode to continue.</p>
-      <form method="post" action="/api/unlock">
-        <input type="hidden" name="next" value="/trips/" data-next />
-        <input type="password" name="code" placeholder="· · · ·" autocomplete="off" aria-label="Passcode" autofocus required />
-        <button type="submit" class="btn">Enter</button>
-      </form>
-      <p class="err" data-err hidden>That code didn't match. Try again.</p>
-      <p style="margin-top:28px"><a href="/" class="eyebrow">← Back to ostroff.la</a></p>
-    </div>
-  </div>
+  <p><a href="/login/">Continue to admin sign in</a></p>
   <script>
     const q = new URLSearchParams(location.search);
     const next = q.get('next') || '';
-    if (/^\/(trips|tickets)(\/|$)/.test(next)) document.querySelector('[data-next]').value = next;
-    if (q.get('err')) document.querySelector('[data-err]').hidden = false;
+    const to = new URL('/login/', location.origin);
+    if (/^\/(trips|tickets|bots|morning)(\/|$)/.test(next)) to.searchParams.set('next', next);
+    location.replace(to.pathname + to.search);
   </script>
 </body>
 </html>

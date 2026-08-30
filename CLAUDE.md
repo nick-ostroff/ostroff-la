@@ -2,48 +2,56 @@
 
 Family landing page for Nick & Peter Ostroff. Production: https://ostroff.la, deployed on Vercel. Repo: github.com/nick-ostroff/ostroff-la.
 
-Plain static HTML — no framework, no build step, no dependencies (`package.json` exists only for `"type": "module"`).
+Plain static HTML — no framework, no build step, no dependencies (`package.json` exists only for `"type": "module"`). Single host: ostroff.la. Existing subdomains 301 onto matching paths; do not delete tickets.ostroff.la without confirmation.
 
 ## Commands
 
 ```bash
 node dev-server.js   # local dev at http://localhost:4173 (PORT env var to override)
+node --test lib/auth.test.js
 ```
 
-`dev-server.js` serves static files from the repo root (directories resolve to `index.html`) and emulates Vercel's serverless runtime for `api/*.js` (mocks `res.status()`/`res.json()` and populates `req.query`). `middleware.js` does NOT run locally, so `/trips/` and `/tickets/` are open on the dev server.
+`dev-server.js` serves static files from the repo root (directories resolve to `index.html`), emulates Vercel serverless for `api/*.js`, and runs `middleware.js` (admin session, subdomain 301s, basic-auth stopgap).
 
 ## Architecture
 
-Design is the "Masthead" editorial system from the Claude Design project "Ostroff domain redesign": Newsreader (serif display/body), Archivo (caps labels), Libre Franklin (UI text); paper white, ink `#1a1815`, accents red `#a63d2f` (home), green `#3d6b4f` (Trips), gold `#8a6d2f` (Tickets). Light theme only.
+Design is the "Masthead" editorial system from the Claude Design project "Ostroff domain redesign": Newsreader (serif display/body), Archivo (caps labels), Libre Franklin (UI text); paper white, ink `#1a1815`, accents red `#a63d2f` (home), green `#3d6b4f` (Trips), gold `#8a6d2f` (Tickets). Light theme only. Bots keeps the existing dark Morning sample UI.
 
-- `assets/site.css` — the shared stylesheet for every page. Design tokens live in `:root`; `.page.section-trips` / `.page.section-tickets` swap `--accent` and add the colored top rule. Change colors/type here, not inline.
-- `index.html` — home: topline, masthead, nav, two profile columns, "Recent Writing" (feed-driven: 2 featured posts with images + thumb briefs, "More writing" paginates 4 at a time), and the two passcode cards for the family sections.
-- `trips/index.html`, `trips/japan/index.html` — family Trips section (static content drafted from the design; "Soon" rows are placeholders).
-- `tickets/index.html`, `tickets/cardinals/index.html` — family Tickets section (static data as of 2026-08-26; the Keep/List pills and "Record a sale" form are visual only, not wired up).
-- `unlock/index.html` — passcode prompt; reads `?next=` and `?err=`.
+- `assets/site.css` — the shared stylesheet for every masthead page. Design tokens live in `:root`; `.page.section-trips` / `.page.section-tickets` swap `--accent` and add the colored top rule. Change colors/type here, not inline.
+- `index.html` — public home: topline, masthead, two profile columns, "Recent Writing". No nav/footer/sitemap links to private sections. Signed-in admins get a Home / Trips / Tickets / Bots nav via `/api/me`.
+- `trips/index.html`, `trips/japan/index.html` — admin Trips pages.
+- `tickets/index.html`, `tickets/g/*/index.html` — admin Tickets board (keep-vs-list inventory). Same content as before; served on ostroff.la, not a required subdomain.
+- `bots/index.html` — daily briefing (folded from `/morning`).
+- `bots/mail/index.html` — email log (folded from `/morning/mail.html`). Fetches `/api/morning-mail`.
+- `login/index.html` — admin username/password. First admin is created here (setup code required). Additional admins can be created while signed in. Not linked from the public home.
+- `unlock/index.html` and `api/unlock.js` — leftovers that 302 to `/login/`.
+- `morning/index.html`, `morning/mail.html` — 301/refresh to `/bots/` and `/bots/mail/`.
 - `api/feed.js` — `GET /api/feed?who=nick,peter` fetches and merges RSS feeds (`nick` → nickostroff.com/feed.xml, `peter` → peterostroff.com/feed.xml), regex-parsed, newest-first JSON, edge-cached `s-maxage=60, stale-while-revalidate=300`. Unknown `who` → 400; upstream failure → 502. Adding a source = add to the `PEOPLE` map.
-- `api/unlock.js` — `POST` with `code` + `next`; on match sets the `ostroff_family` cookie (1 year, HttpOnly) and 302s to `next` (only `/trips…` or `/tickets…` allowed); otherwise 302s back to `/unlock/?err=1`.
-- `middleware.js` — `/trips/*` and `/tickets/*` on ostroff.la (family cookie). `grok.ostroff.la` is HTTP basic auth (user `nick`, password `MORNING_BASIC_PASSWORD`). ostroff.la `/morning` is 404. Fail closed with 503 if the grok password is unset.
-- `morning/index.html`, `morning/mail.html` — Cap sample Morning dash + mail log, served at https://grok.ostroff.la/ and `/mail`. No homepage link on ostroff.la. noindex. Password is a Vercel secret, never in git.
-- `vercel.json` — host rewrites so grok.ostroff.la `/` and `/mail` map onto the morning files.
-- Static assets: `favicon.svg`, `images/` (portraits), `robots.txt` (disallows the family sections, unlock, api), `sitemap.xml` (home only).
+- `api/login.js` / `api/logout.js` / `api/me.js` / `api/users.js` — admin accounts. Passwords are PBKDF2 hashes; sessions are HMAC cookies (`ostroff_admin`). Users seed from `ADMIN_USERS_JSON`. Extra users persist to `.data/users.json` locally (gitignored). On Vercel, copy the returned `envSnippet` into `ADMIN_USERS_JSON` so the account survives a deploy. Never commit hashes with real passwords, mail rows, or the Morning password.
+- `api/morning-mail.js` — `GET` returns `MORNING_MAIL_JSON`. Not in git. Fail closed if unset.
+- `middleware.js` — private paths (`/trips`, `/tickets`, `/bots`, `/morning`, `/api/morning-mail`) require an admin session once `ADMIN_SESSION_SECRET` is set. Until that secret exists, HTTP basic auth (`nick` / `MORNING_BASIC_PASSWORD`) is the fail-closed stopgap, then it is unused. `grok.ostroff.la`, `tickets.ostroff.la`, and `trips.ostroff.la` 301 to the matching ostroff.la path.
+- `vercel.json` — host 301s for grok.ostroff.la and tickets.ostroff.la, plus `/morning` → `/bots`.
+- Static assets: `favicon.svg`, `images/` (portraits), `robots.txt` (disallows private paths, login, api), `sitemap.xml` (home only).
 
 ## Environment variables (Vercel)
 
-- `FAMILY_PASSCODE` — what the family types to unlock Trips/Tickets.
-- `FAMILY_TOKEN` — random secret stored in the cookie. Rotate to log everyone out.
-- `MORNING_BASIC_PASSWORD` — HTTP basic-auth password for grok.ostroff.la. Username is `nick` (override with `MORNING_BASIC_USER`). Never commit this value.
+- `ADMIN_SESSION_SECRET` — HMAC key for the admin cookie. Set this to turn on admin login and retire basic auth. Rotate to log everyone out.
+- `ADMIN_USERS_JSON` — `[{"username":"nick","hash":"…","salt":"…","iter":100000}]`. Production source of truth for admin accounts. Create users in `/login/`; paste the returned snippet here on Vercel.
+- `ADMIN_SETUP_TOKEN` — optional. Required to create the first admin if `MORNING_BASIC_PASSWORD` / `FAMILY_PASSCODE` are unset.
+- `MORNING_BASIC_PASSWORD` — stopgap HTTP basic-auth password (`nick`, override user with `MORNING_BASIC_USER`) used only until `ADMIN_SESSION_SECRET` is set. Also accepted as the first-admin setup code. Never commit this value.
 - `MORNING_MAIL_JSON` — mail-log payload for `/api/morning-mail`. Not in git (public repo). Fail closed if unset.
+- `FAMILY_PASSCODE` / `FAMILY_TOKEN` — unused for gating now. Passcode may still work as the first-admin setup code if the Morning password is unset.
 
-Both must be set or the family sections stay locked (unlock always fails).
+Do not put mail rows or passwords in the public GitHub repo.
 
 ## Conventions & gotchas
 
 - **GTM is installed** on the home page (container `GTM-W48S46Z3`) — head snippet plus `<noscript>` iframe right after `<body>`. Preserve both when editing `index.html`.
-- Family pages carry `<meta name="robots" content="noindex, nofollow">`; keep it on anything new under `/trips` or `/tickets`.
-- The design mocks reference `trips.ostroff.la` / `tickets.ostroff.la`; the site serves them as `/trips/` and `/tickets/` paths (labels kept for flavor). Subdomains would need Vercel domain config plus path rewrites.
-- **Sitemap:** update `<lastmod>` in `sitemap.xml` on meaningful home-page changes. Do not add the family pages.
+- Private pages carry `<meta name="robots" content="noindex, nofollow">`; keep it on anything new under `/trips`, `/tickets`, or `/bots`.
+- **Sitemap:** update `<lastmod>` in `sitemap.xml` on meaningful home-page changes. Do not add private pages.
 - This page intentionally uses a centered `max-width: 1080px` wrap — it's a landing page, not an app; the global full-width rule doesn't apply here.
+- Sections are only Home (public), Trips/Tickets (admin), and Bots briefing + mail log (admin). Do not invent extra sections.
+- tickets.ostroff.la may 301 to `/tickets/`. Do not delete that subdomain without confirmation.
 
 ## Deployment
 
