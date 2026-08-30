@@ -1,10 +1,11 @@
 // Vercel Routing Middleware
 // - Existing subdomains 301 onto ostroff.la (tickets.ostroff.la is kept; do not delete).
 // - Private paths: /trips, /tickets, /bots, /morning + mail APIs
+// - GET /api/mail-notes also allows Authorization: Bearer MAIL_NOTES_FEED_TOKEN
 // - Admin session cookie (ostroff_admin) once ADMIN_SESSION_SECRET is set.
 // - Until then, nick / MORNING_BASIC_PASSWORD basic auth is the fail-closed stopgap.
 
-import { readSession, sessionSecret } from './lib/session.js';
+import { mailNotesFeedAuthorized, readSession, sessionSecret } from './lib/session.js';
 
 export const config = {
   matcher: [
@@ -133,6 +134,15 @@ export default async function middleware(req) {
 
   const session = await readSession(req.headers.get('cookie') || '');
   if (session) return;
+
+  // Proto (and other bots) may GET notes with a feed token. POST still needs a session.
+  if (
+    path === '/api/mail-notes'
+    && req.method === 'GET'
+    && mailNotesFeedAuthorized(req.headers.get('authorization'))
+  ) {
+    return;
+  }
 
   if (sessionSecret()) return deny(req, url, path);
 

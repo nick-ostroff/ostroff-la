@@ -5,5 +5,8 @@
   "scripts": {
     "test": "node --test lib/auth.test.js lib/mail-log.test.js lib/mail-notes.test.js",
     "mail-json": "node scripts/build-mail-json.js"
+  },
+  "dependencies": {
+    "@vercel/blob": "^2.8.0"
   }
 }
