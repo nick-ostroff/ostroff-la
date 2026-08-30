@@ -23,7 +23,7 @@ Design is the "Masthead" editorial system from the Claude Design project "Ostrof
 - `trips/index.html`, `trips/japan/index.html` — admin Trips pages.
 - `tickets/index.html`, `tickets/g/*/index.html` — admin Tickets board (keep-vs-list inventory). Same content as before; served on ostroff.la, not a required subdomain.
 - `bots/index.html` — daily briefing (folded from `/morning`).
-- `bots/mail/index.html` — email log. Inbox-first: ostroff.la vs Pixelocity, then keep/archive. Rows are Gmail arrival order, oldest first. Fetches `/api/morning-mail`. Each card has a note field; saves go to `/api/mail-notes`.
+- `bots/mail/index.html` — email log as a sortable table (date, from, subject, keep/archive, rule, note). Inbox-first: ostroff.la vs Pixelocity, then keep/archive. Default sort is newest Gmail Date first; click a header to sort. Fetches `/api/morning-mail`. Each row has an inline note field; saves go to `/api/mail-notes`.
 - `login/index.html` — admin username/password. First admin is created here (setup code required). Additional admins can be created while signed in. Not linked from the public home.
 - `unlock/index.html` and `api/unlock.js` — leftovers that 302 to `/login/`.
 - `morning/index.html`, `morning/mail.html` — 301/refresh to `/bots/` and `/bots/mail/`.

@@ -12,8 +12,8 @@
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text);
-    font: 16px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; }
-  body { padding: 24px 18px 64px; max-width: 820px; margin: 0 auto; }
+    font: 15px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; }
+  body { padding: 24px 18px 64px; max-width: 1180px; margin: 0 auto; }
   a { color: var(--accent); text-decoration: none; }
   .admin-bar {
     display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center;
@@ -40,31 +40,40 @@
     padding: 10px 14px; min-height: 44px; border: 1px solid var(--line); background: var(--panel2); color: var(--muted); }
   .pills button.on { color: var(--text); border-color: #4a5060; background: #2a2e36; }
   .pills.inbox button.on { color: #1a1408; background: var(--accent); border-color: var(--accent); }
-  .corr { background: #2a2418; border: 1px solid #5a4a28; border-radius: 14px; padding: 14px 16px; margin-bottom: 14px; }
-  .corr .who { color: var(--accent); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
-  .row { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; margin: 0 0 8px; }
-  .row .top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
-  .from { font-weight: 650; }
-  .act { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; }
+  .wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+  table { width: 100%; border-collapse: collapse; min-width: 960px; }
+  th, td { padding: 8px 10px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+  th { position: sticky; top: 0; background: var(--panel2); font-size: 11px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--muted); font-weight: 650; }
+  th button {
+    font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit;
+    background: none; border: 0; padding: 0; cursor: pointer; display: inline-flex; gap: 6px; align-items: center;
+  }
+  th button:hover, th[aria-sort] button { color: var(--text); }
+  th[aria-sort="descending"] button::after { content: "↓"; color: var(--accent); }
+  th[aria-sort="ascending"] button::after { content: "↑"; color: var(--accent); }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr:hover td { background: #1e2127; }
+  .date { white-space: nowrap; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .from { font-weight: 650; max-width: 16em; }
+  .subj { max-width: 22em; }
+  .rule { color: var(--accent); font-size: 12px; letter-spacing: .02em; max-width: 16em; word-break: break-word; }
+  .act { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
   .act.keep { background: #1e3326; color: var(--on); }
   .act.archive { background: #2a2a2a; color: var(--off); }
-  .subj { margin-top: 4px; }
-  .rule { color: var(--accent); font-size: 12px; letter-spacing: .04em; margin-top: 6px; }
-  .meta { color: var(--muted); font-size: 13px; margin-top: 4px; }
-  .row .corr { margin: 12px 0 0; }
-  .note-form { margin-top: 12px; display: flex; gap: 8px; align-items: flex-end; }
-  .note-form textarea {
-    flex: 1; min-height: 68px; resize: vertical; font: inherit;
-    background: var(--panel2); color: var(--text);
-    border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px;
+  .note-cell { min-width: 16em; }
+  .note-form { display: flex; gap: 6px; align-items: center; }
+  .note-form input {
+    flex: 1; min-width: 0; min-height: 36px; font: inherit; color: var(--text);
+    background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px;
   }
   .note-form button {
-    font: inherit; font-size: 13px; font-weight: 600; letter-spacing: .04em;
-    min-height: 44px; padding: 8px 14px; border-radius: 10px; white-space: nowrap;
-    color: #1a1408; background: var(--accent); border: 1px solid var(--accent);
+    font: inherit; font-size: 13px; font-weight: 600; min-height: 36px; padding: 6px 10px;
+    border-radius: 8px; color: #1a1408; background: var(--accent); border: 1px solid var(--accent); white-space: nowrap;
   }
   .note-form button:disabled { opacity: .6; }
-  .note-form .status { color: var(--muted); font-size: 13px; min-width: 4.5em; }
+  .note-form .status { color: var(--muted); font-size: 12px; white-space: nowrap; }
+  .empty { padding: 18px 16px; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -78,20 +87,29 @@
   </div>
   <div class="kicker"><a href="/bots/">Briefing</a> · Cliff<span class="sample" data-sample>Live</span></div>
   <h1>Mail log</h1>
-  <p class="sub">What Cliff filed, and the rule that sorted it. Leave a note if the filing should change. No bodies. Oldest arrival first.</p>
+  <p class="sub">What Cliff filed, and the rule that sorted it. Leave a note if the filing should change. No bodies. Newest first — click a column to sort.</p>
   <div class="stats" data-stats>Loading…</div>
   <div class="pills inbox" id="inboxes" aria-label="Inbox"></div>
   <div class="pills secondary" id="pills" aria-label="Keep or archive"></div>
-  <div id="corrs"></div>
   <div id="list"></div>
 <script>
 let DATA = { rows: [], corrs: [], boxes: [], notes: [] };
 let INBOX = "ostroff";
 let ACTION = "all";
+let SORT = { col: "date", dir: "desc" };
+const DRAFTS = {};
 
 const INBOXES = [
   { id: "ostroff", label: "ostroff.la" },
   { id: "pixelocity", label: "Pixelocity" }
+];
+const COLS = [
+  ["date", "Date"],
+  ["from", "From"],
+  ["subject", "Subject"],
+  ["action", "Keep / archive"],
+  ["rule", "Rule"],
+  ["note", "Note"]
 ];
 
 function bootMail() {
@@ -109,27 +127,71 @@ function bootMail() {
     })
     .catch(() => {
       const el = document.getElementById("list");
-      if (el) el.innerHTML = '<div class="row"><div class="subj">Mail log is not loaded yet.</div></div>';
+      if (el) el.innerHTML = '<div class="empty">Mail log is not loaded yet.</div>';
       document.querySelector("[data-stats]").textContent = "Mail log is not loaded yet.";
     });
 }
 
 function arrivalMs(r) {
   const t = Date.parse(r && r.date ? r.date : "");
-  return Number.isNaN(t) ? Infinity : t;
+  return Number.isNaN(t) ? null : t;
 }
 
-function byArrival(rows) {
+function rowNotes(r) {
+  const k = r.key || [r.account || "", r.date || "", r.from || "", r.subject || ""].join("\t");
+  const stored = (r.notes && r.notes.length)
+    ? r.notes
+    : (DATA.notes || []).filter(n => (n.key || "") === k);
+  const corrs = (DATA.corrs || []).filter(c =>
+    c.from === r.from && c.subject === r.subject &&
+    (!c.account || !r.account || c.account === r.account)
+  ).map(c => ({
+    note: c.note || [c.cliff && `Cliff ${c.cliff}`, c.nick && `Nick ${c.nick}`].filter(Boolean).join(" → "),
+    by: "nick",
+    at: ""
+  }));
+  const seen = new Set();
+  const out = [];
+  for (const n of corrs.concat(stored)) {
+    const text = String(n.note || "").trim();
+    if (!text || seen.has(text)) continue;
+    seen.add(text);
+    out.push(n);
+  }
+  return out;
+}
+
+function latestNote(r) {
+  const notes = rowNotes(r);
+  return notes.length ? notes[notes.length - 1].note : "";
+}
+
+function sortRows(rows) {
+  const { col, dir } = SORT;
+  const mul = dir === "asc" ? 1 : -1;
   return rows.slice().sort((a, b) => {
-    const da = arrivalMs(a);
-    const db = arrivalMs(b);
-    if (da !== db) return da - db;
+    if (col === "date") {
+      const da = arrivalMs(a);
+      const db = arrivalMs(b);
+      if (da == null && db == null) return 0;
+      if (da == null) return 1;
+      if (db == null) return -1;
+      if (da !== db) return (da - db) * mul;
+    } else {
+      const va = col === "note" ? latestNote(a) : String(a[col] || "");
+      const vb = col === "note" ? latestNote(b) : String(b[col] || "");
+      const c = va.localeCompare(vb, undefined, { sensitivity: "base" });
+      if (c) return c * mul;
+      const da = arrivalMs(a);
+      const db = arrivalMs(b);
+      if (da != null && db != null && da !== db) return db - da;
+    }
     return String(a.subject || "").localeCompare(String(b.subject || ""));
   });
 }
 
 function inboxRows() {
-  return byArrival(DATA.rows.filter(r => r.account === INBOX));
+  return sortRows(DATA.rows.filter(r => r.account === INBOX));
 }
 
 function visibleRows() {
@@ -144,7 +206,7 @@ function pills() {
     `<button type="button" class="${INBOX===b.id?"on":""}" data-inbox="${b.id}">${b.label} ${boxCounts[b.id]}</button>`
   ).join("");
 
-  const rows = inboxRows();
+  const rows = DATA.rows.filter(r => r.account === INBOX);
   const counts = {
     all: rows.length,
     keep: rows.filter(r => r.action === "keep").length,
@@ -156,77 +218,99 @@ function pills() {
   ).join("");
 }
 
+function fmtDate(raw) {
+  const t = Date.parse(raw || "");
+  if (Number.isNaN(t)) return raw || "";
+  return new Date(t).toLocaleString(undefined, {
+    weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit"
+  });
+}
+
+function headerRow() {
+  return `<tr>${COLS.map(([id, label]) => {
+    const sort = SORT.col === id ? (SORT.dir === "asc" ? "ascending" : "descending") : null;
+    return `<th scope="col"${sort ? ` aria-sort="${sort}"` : ""}><button type="button" data-sort="${id}">${label}</button></th>`;
+  }).join("")}</tr>`;
+}
+
 function render() {
   pills();
-  const rows = inboxRows();
-  const keep = rows.filter(r => r.action === "keep").length;
-  const archive = rows.filter(r => r.action === "archive").length;
+  const inbox = DATA.rows.filter(r => r.account === INBOX);
+  const keep = inbox.filter(r => r.action === "keep").length;
+  const archive = inbox.filter(r => r.action === "archive").length;
   const label = (INBOXES.find(b => b.id === INBOX) || {}).label || INBOX;
-  const started = rows[0] ? rows[0].date : "";
+  const newest = inbox.slice().sort((a, b) => (arrivalMs(b) || 0) - (arrivalMs(a) || 0))[0];
   document.querySelector("[data-stats]").textContent =
-    `${rows.length} filed · ${keep} kept · ${archive} archived · ${label}` +
-    (started ? ` · oldest ${esc(started)}` : "");
-
-  document.getElementById("corrs").innerHTML = (DATA.corrs || []).map(c =>
-    `<div class="corr"><div class="who">Correction</div>
-     <div class="from">${esc(c.from)}</div>
-     <div class="subj">${esc(c.subject)}</div>
-     <div class="meta">Cliff ${esc(c.cliff)} → Nick ${esc(c.nick)}. ${esc(c.note)}</div></div>`
-  ).join("");
+    `${inbox.length} filed · ${keep} kept · ${archive} archived · ${label}` +
+    (newest && newest.date ? ` · newest ${esc(fmtDate(newest.date))}` : "");
 
   const shown = visibleRows();
-  document.getElementById("list").innerHTML = shown.length
-    ? shown.map(r => rowHtml(r, label))
-    : '<div class="row"><div class="subj">Nothing filed in this view.</div></div>';
+  const el = document.getElementById("list");
+  if (!shown.length) {
+    el.innerHTML = '<div class="empty">Nothing filed in this view.</div>';
+    return;
+  }
+  el.innerHTML = `<div class="wrap"><table>
+    <thead>${headerRow()}</thead>
+    <tbody>${shown.map(rowHtml).join("")}</tbody>
+  </table></div>`;
 }
 
-function rowNotes(r) {
-  if (r.notes && r.notes.length) return r.notes;
-  const k = r.key || [r.account || "", r.date || "", r.from || "", r.subject || ""].join("\t");
-  return (DATA.notes || []).filter(n => (n.key || "") === k);
-}
-
-function rowHtml(r, label) {
+function rowHtml(r) {
   const notes = rowNotes(r);
-  const saved = notes.map(n =>
-    `<div class="corr"><div class="who">Note</div>
-     <div class="subj">${esc(n.note)}</div>
-     <div class="meta">${esc(n.by || "nick")}${n.at ? ` · ${esc(fmtWhen(n.at))}` : ""}</div></div>`
-  ).join("");
-  return `<div class="row" data-key="${esc(r.key || "")}">
-        <div class="top"><div class="from">${esc(r.from)}</div><span class="act ${r.action}">${r.action}</span></div>
-        <div class="subj">${esc(r.subject) || "(no subject)"}</div>
-        <div class="rule">${esc(r.rule) || "unspecified"}</div>
-        <div class="meta">${esc(label)} · ${esc(r.date)} · ${esc(r.labels)}</div>
-        ${saved}
-        <form class="note-form" data-key="${esc(r.key || "")}">
-          <textarea name="note" rows="2" maxlength="4000" placeholder="What should Cliff change? Keep vs archive, rule, folder…"></textarea>
-          <button type="submit">Save note</button>
-          <span class="status" aria-live="polite"></span>
-        </form>
-      </div>`;
-}
-
-function fmtWhen(iso) {
-  const t = Date.parse(iso);
-  if (Number.isNaN(t)) return iso;
-  return new Date(t).toLocaleString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  const latest = notes.length ? notes[notes.length - 1].note : "";
+  const draft = Object.prototype.hasOwnProperty.call(DRAFTS, r.key) ? DRAFTS[r.key] : latest;
+  return `<tr data-key="${esc(r.key || "")}">
+    <td class="date">${esc(fmtDate(r.date))}</td>
+    <td class="from">${esc(r.from)}</td>
+    <td class="subj">${esc(r.subject) || "(no subject)"}</td>
+    <td><span class="act ${esc(r.action)}">${esc(r.action)}</span></td>
+    <td class="rule">${esc(r.rule) || "unspecified"}</td>
+    <td class="note-cell">
+      <form class="note-form" data-key="${esc(r.key || "")}">
+        <input name="note" type="text" maxlength="4000" value="${esc(draft)}" placeholder="Filing change for Cliff…" />
+        <button type="submit">Save</button>
+        <span class="status" aria-live="polite"></span>
+      </form>
+    </td>
+  </tr>`;
 }
 
 function esc(s) {
   return String(s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
 }
 
+function rememberDrafts() {
+  document.querySelectorAll("form.note-form").forEach(form => {
+    const input = form.querySelector("input[name=note]");
+    if (input) DRAFTS[form.dataset.key] = input.value;
+  });
+}
+
 document.getElementById("inboxes").addEventListener("click", e => {
   const b = e.target.closest("button[data-inbox]");
   if (!b) return;
+  rememberDrafts();
   INBOX = b.dataset.inbox;
   render();
 });
 document.getElementById("pills").addEventListener("click", e => {
   const b = e.target.closest("button[data-f]");
   if (!b) return;
+  rememberDrafts();
   ACTION = b.dataset.f;
+  render();
+});
+document.getElementById("list").addEventListener("click", e => {
+  const b = e.target.closest("button[data-sort]");
+  if (!b) return;
+  rememberDrafts();
+  const col = b.dataset.sort;
+  if (SORT.col === col) SORT.dir = SORT.dir === "asc" ? "desc" : "asc";
+  else {
+    SORT.col = col;
+    SORT.dir = col === "date" ? "desc" : "asc";
+  }
   render();
 });
 document.getElementById("list").addEventListener("submit", e => {
@@ -240,12 +324,16 @@ function saveNote(form) {
   const key = form.dataset.key;
   const row = DATA.rows.find(r => (r.key || "") === key);
   if (!row) return;
-  const textarea = form.querySelector("textarea");
+  const input = form.querySelector("input[name=note]");
   const status = form.querySelector(".status");
   const button = form.querySelector("button");
-  const note = String(textarea.value || "").trim();
+  const note = String(input.value || "").trim();
   if (!note) {
     if (status) status.textContent = "Type a note first.";
+    return;
+  }
+  if (note === latestNote(row)) {
+    if (status) status.textContent = "Saved.";
     return;
   }
   if (button) button.disabled = true;
@@ -273,7 +361,15 @@ function saveNote(form) {
       DATA.rows = DATA.rows.map(r => r.key === key
         ? { ...r, notes: (r.notes || []).concat([d.note]) }
         : r);
+      DRAFTS[key] = note;
+      rememberDrafts();
       render();
+      const next = [...document.querySelectorAll("form.note-form")]
+        .find(f => f.dataset.key === key);
+      if (next) {
+        const s = next.querySelector(".status");
+        if (s) s.textContent = "Saved.";
+      }
     })
     .catch(err => {
       if (button) button.disabled = false;
