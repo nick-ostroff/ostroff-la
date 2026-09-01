@@ -52,6 +52,12 @@ window.TICKET_TEAMS = [
         "timeLabel": "1:25 PM",
         "pairPrice": 336,
         "kind": "regular",
+        "listing": {
+          "askEach": 300,
+          "pairAsk": 600,
+          "tm": "1264401663",
+          "payoutEach": 270
+        },
         "market": {
           "pairLow": 622,
           "pairMedian": 713,
@@ -69,6 +75,12 @@ window.TICKET_TEAMS = [
         "timeLabel": "1:05 PM",
         "pairPrice": 430,
         "kind": "regular",
+        "listing": {
+          "askEach": 400,
+          "pairAsk": 800,
+          "tm": "1264402833",
+          "payoutEach": 360
+        },
         "market": {
           "pairLow": 961,
           "pairMedian": 1208,

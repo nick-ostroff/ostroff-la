@@ -14,6 +14,10 @@ window.TicketGame = {
     return null;
   },
   when(game) { return [game.dateLabel, game.timeLabel, game.note].filter(Boolean).join(" · "); },
+  listingLine(listing) {
+    if (!listing) return "";
+    return this.usd(listing.askEach) + "/ea \u00b7 TM #" + listing.tm + " \u00b7 payout " + this.usd(listing.payoutEach) + " ea";
+  },
   kind(game) {
     if (game.kind === "preseason") return "Preseason";
     if (game.kind === "regular") return "Regular";
@@ -40,11 +44,14 @@ window.TicketGame = {
     const oppClass = opp == null ? "" : opp >= 0 ? "up" : "down";
     const oppText = opp == null ? "\u2014" : (opp >= 0 ? "+" : "\u2212") + this.usd(Math.abs(opp));
     const saleLine = live ? window.TicketSales.line(live) : "";
+    const listing = !live && game.listing ? game.listing : null;
     const status = live
       ? `<span class="status up">Sold</span><div class="fine">${saleLine}</div>`
-      : game.played
-        ? `<span class="status">Played</span>`
-        : `<div class="pills"><span class="pill on">Undecided</span><span class="pill">Keep</span><span class="pill">List</span></div>`;
+      : listing
+        ? `<span class="status">Listed</span><div class="fine">${this.listingLine(listing)}</div>`
+        : game.played
+          ? `<span class="status">Played</span>`
+          : `<div class="pills"><span class="pill on">Undecided</span><span class="pill">Keep</span><span class="pill">List</span></div>`;
     const askBig = m ? this.usd(m.pairLow) : "\u2014";
     const askFine = m ? "Median " + this.usd(m.pairMedian) + " \u00b7 fees extra" : "No section ask yet";
     const seatFine = m ? m.cheapestLine : "No listing pulled";
