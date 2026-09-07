@@ -1,3 +1,5 @@
+import { UPSTREAM_FETCH, freshUpstreamUrl } from '../lib/feed.js';
+
 const PEOPLE = {
   nick: { name: 'Nick Ostroff', feed: 'https://nickostroff.com/feed.xml' },
   peter: { name: 'Peter Ostroff', feed: 'https://www.peterostroff.com/feed.xml' },
@@ -78,9 +80,7 @@ export default async function handler(req, res) {
     const results = await Promise.all(
       keys.map(async (key) => {
         const person = PEOPLE[key];
-        const upstream = await fetch(person.feed, {
-          headers: { 'user-agent': 'ostroff.la/1.0 (+https://ostroff.la)' },
-        });
+        const upstream = await fetch(freshUpstreamUrl(person.feed), UPSTREAM_FETCH);
         if (!upstream.ok) throw new Error(`${key}: upstream ${upstream.status}`);
         return parseFeed(await upstream.text(), person, key);
       }),
