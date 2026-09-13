@@ -58,6 +58,9 @@
   .fyi:first-of-type { border-top: none; padding-top: 0; }
   .fyi .nm { font-weight: 600; }
   .fyi .meta { color: var(--muted); font-size: 14px; margin-top: 2px; }
+  .fyi .who { margin-bottom: 2px; }
+  .tesla-hi { color: var(--text); font-weight: 700; }
+  .fyi .asof { color: var(--muted); font-size: 13px; margin-top: 4px; }
   .log { margin-top: 28px; color: var(--off); font-size: 13px; }
   .log div { padding: 6px 0; border-top: 1px solid var(--line); }
 </style>
@@ -84,6 +87,11 @@
     <div class="fyi"><div class="nm">Sep 3 pickleball</div><div class="meta">Rec Park Court 4, 8–10pm. Booked. $43.58.</div></div>
     <div class="fyi"><div class="nm">Sep 7 El Segundo</div><div class="meta">Fast Track. Checkout opens Monday 8am. Dinkster has it.</div></div>
     <div class="fyi"><div class="nm"><a href="/bots/mail/" style="color:#ececec;text-decoration:none">Mail log</a></div><div class="meta" data-mail-fyi>ostroff.la and Pixelocity, each as its own inbox.</div></div>
+    <div class="fyi">
+      <div class="who">Otto</div>
+      <div class="nm" data-tesla-title>Tesla</div>
+      <div class="meta" data-tesla-fyi>No Tesla snapshot yet</div>
+    </div>
     <div class="fyi"><div class="nm">Later</div><div class="meta">Haircut overdue. Ancestry + Udemy still open. Amex in QuickBooks still disconnected.</div></div>
   </section>
 
@@ -178,6 +186,67 @@ fetch("/api/morning-mail", { credentials: "include", cache: "no-store" })
     el.textContent = `ostroff.la ${ostroff.length} · Pixelocity ${pixel.length}. ${keep} kept, ${archive} archived.`;
   })
   .catch(() => {});
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function teslaLine(d) {
+  const line = String(d.line || "").trim();
+  if (line) return line;
+  const parts = [];
+  if (d.battery_level_pct != null) parts.push(d.battery_level_pct + "%");
+  if (d.battery_range_mi != null) parts.push(d.battery_range_mi + " mi");
+  if (d.charge_limit_soc != null) parts.push("limit " + d.charge_limit_soc + "%");
+  if (d.charging_state) parts.push(d.charging_state);
+  if (d.locked === true) parts.push("locked");
+  else if (d.locked === false) parts.push("unlocked");
+  return parts.join(" · ");
+}
+
+function highlightTesla(line, d) {
+  let html = escapeHtml(line);
+  const bits = [];
+  if (d.battery_level_pct != null) bits.push({ n: String(d.battery_level_pct) + "%", k: "tesla-pct" });
+  if (d.battery_range_mi != null) bits.push({ n: String(d.battery_range_mi) + " mi", k: "tesla-range" });
+  if (d.charge_limit_soc != null) bits.push({ n: "limit " + d.charge_limit_soc + "%", k: "tesla-limit" });
+  bits.sort((a, b) => b.n.length - a.n.length);
+  for (const b of bits) {
+    const needle = escapeHtml(b.n);
+    const i = html.indexOf(needle);
+    if (i < 0) continue;
+    html = html.slice(0, i) + `<span class="tesla-hi ${b.k}">` + needle + "</span>" + html.slice(i + needle.length);
+  }
+  return html;
+}
+
+function showTeslaEmpty() {
+  const title = document.querySelector("[data-tesla-title]");
+  const el = document.querySelector("[data-tesla-fyi]");
+  if (title) title.textContent = "Tesla";
+  if (el) el.textContent = "No Tesla snapshot yet";
+}
+
+fetch("/api/tesla-morning", { credentials: "include", cache: "no-store" })
+  .then(r => { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+  .then(d => {
+    const title = document.querySelector("[data-tesla-title]");
+    const el = document.querySelector("[data-tesla-fyi]");
+    if (!el) return;
+    if (!d || d.empty || (!d.line && d.battery_level_pct == null && d.battery_range_mi == null)) {
+      showTeslaEmpty();
+      return;
+    }
+    if (title) title.textContent = d.display_name || "Tesla";
+    const line = teslaLine(d);
+    const asOf = d.as_of_pt ? `<div class="asof">${escapeHtml(d.as_of_pt)}</div>` : "";
+    el.innerHTML = highlightTesla(line, d) + asOf;
+  })
+  .catch(() => showTeslaEmpty());
 </script>
 </body>
 </html>

@@ -1,11 +1,12 @@
 // Vercel Routing Middleware
 // - Existing subdomains 301 onto ostroff.la (tickets.ostroff.la is kept; do not delete).
-// - Private paths: /trips, /tickets, /bots, /morning + mail APIs
+// - Private paths: /trips, /tickets, /bots, /morning + mail + Tesla APIs
 // - GET /api/mail-notes also allows Authorization: Bearer MAIL_NOTES_FEED_TOKEN
+// - GET/POST /api/tesla-morning also allows Authorization: Bearer TESLA_MORNING_FEED_TOKEN
 // - Admin session cookie (ostroff_admin) once ADMIN_SESSION_SECRET is set.
 // - Until then, nick / MORNING_BASIC_PASSWORD basic auth is the fail-closed stopgap.
 
-import { mailNotesFeedAuthorized, readSession, sessionSecret } from './lib/session.js';
+import { mailNotesFeedAuthorized, readSession, sessionSecret, teslaMorningFeedAuthorized } from './lib/session.js';
 
 export const config = {
   matcher: [
@@ -74,6 +75,7 @@ function isPrivatePath(path) {
   return (
     path === '/api/morning-mail' ||
     path === '/api/mail-notes' ||
+    path === '/api/tesla-morning' ||
     path === '/trips' || path.startsWith('/trips/') ||
     path === '/tickets' || path.startsWith('/tickets/') ||
     path === '/bots' || path.startsWith('/bots/') ||
@@ -140,6 +142,14 @@ export default async function middleware(req) {
     path === '/api/mail-notes'
     && req.method === 'GET'
     && mailNotesFeedAuthorized(req.headers.get('authorization'))
+  ) {
+    return;
+  }
+
+  // Otto may GET/POST the Tesla snapshot with a dedicated feed token.
+  if (
+    path === '/api/tesla-morning'
+    && teslaMorningFeedAuthorized(req.headers.get('authorization'))
   ) {
     return;
   }
