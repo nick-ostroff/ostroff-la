@@ -20,7 +20,7 @@
 //     -d '{"id":"c_…","consumed":true}' \
 //     https://ostroff.la/api/confirmations
 import { queryValue, readBody, json } from '../lib/http.js';
-import { mailNotesFeedAuthorized, readSession } from '../lib/session.js';
+import { mailNotesFeedAuthorized, readSession, sessionSecret } from '../lib/session.js';
 import {
   consumeConfirmation,
   createConfirmation,
@@ -39,12 +39,22 @@ function authorization(req) {
 async function requireAuth(req) {
   const session = await readSession(req.headers.cookie || '');
   const feed = mailNotesFeedAuthorized(authorization(req));
-  if (!session && !feed) return { error: 'auth required', status: 401 };
-  return {
-    session,
-    feed,
-    by: session?.username || (feed ? 'feed' : ''),
-  };
+  if (session || feed) {
+    return {
+      session,
+      feed,
+      by: session?.username || (feed ? 'feed' : ''),
+    };
+  }
+  // Stopgap only: middleware already required basic auth when no session secret.
+  if (!sessionSecret()) {
+    return {
+      session: null,
+      feed: false,
+      by: process.env.MORNING_BASIC_USER || 'nick',
+    };
+  }
+  return { error: 'auth required', status: 401 };
 }
 
 function sendResult(res, result, extra = {}) {
@@ -105,7 +115,7 @@ export default async function handler(req, res) {
   }
   if (isDecideBody(body)) {
     const result = await decideConfirmation(body, {
-      by: auth.session?.username || 'cap',
+      by: auth.session?.username || (auth.feed ? 'cap' : auth.by),
     });
     return sendResult(res, result);
   }
