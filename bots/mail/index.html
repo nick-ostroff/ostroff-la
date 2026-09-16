@@ -76,6 +76,7 @@
   }
   .note-form button:disabled { opacity: .6; }
   .note-form .status { color: var(--muted); font-size: 12px; white-space: nowrap; }
+  .note-state { color: var(--muted); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; margin-top: 4px; }
   .empty { padding: 18px 16px; color: var(--muted); }
 </style>
 </head>
@@ -86,6 +87,7 @@
     <a href="/tickets/">Tickets</a>
     <a href="/bots/">Briefing</a>
     <a href="/bots/mail/" class="on">Mail log</a>
+    <a href="/bots/confirm/">Confirms</a>
     <form method="post" action="/api/logout"><button type="submit">Sign out</button></form>
   </div>
   <div class="kicker"><a href="/bots/">Briefing</a> · Cliff<span class="sample" data-sample>Live</span></div>
@@ -274,7 +276,11 @@ function labelCell(r) {
 
 function rowHtml(r) {
   const notes = rowNotes(r);
-  const latest = notes.length ? notes[notes.length - 1].note : "";
+  const latestObj = notes.length ? notes[notes.length - 1] : null;
+  const latest = latestObj ? latestObj.note : "";
+  const noteState = latestObj && latestObj.status && latestObj.status !== "open"
+    ? `<div class="note-state">${esc(latestObj.status)}</div>`
+    : "";
   const draft = Object.prototype.hasOwnProperty.call(DRAFTS, r.key) ? DRAFTS[r.key] : latest;
   return `<tr data-key="${esc(r.key || "")}">
     <td class="date">${esc(fmtDate(r.date))}</td>
@@ -288,6 +294,7 @@ function rowHtml(r) {
         <button type="submit">Save</button>
         <span class="status" aria-live="polite"></span>
       </form>
+      ${noteState}
     </td>
   </tr>`;
 }
