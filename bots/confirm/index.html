@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Bots · Confirms — Ostroff.LA</title>
+<style>
+  :root {
+    --bg: #111214; --panel: #1a1c20; --panel2: #22252b; --line: #2c3038;
+    --text: #ececec; --muted: #9aa0aa; --accent: #d4a24a; --on: #5dba7a;
+    --off: #8a8f98; --danger: #c45c5c;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text);
+    font: 16px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; }
+  body { padding: 24px 18px 64px; max-width: 720px; margin: 0 auto; }
+  a { color: var(--accent); text-decoration: none; }
+  .admin-bar {
+    display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center;
+    margin: -4px 0 18px; padding-bottom: 14px; border-bottom: 1px solid var(--line);
+    font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
+  }
+  .admin-bar a { color: var(--muted); }
+  .admin-bar a.on { color: var(--text); }
+  .admin-bar form { margin: 0 0 0 auto; }
+  .admin-bar button {
+    font: inherit; font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
+    min-height: 0; padding: 6px 10px; border-radius: 8px; color: var(--text);
+  }
+  .kicker { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  h1 { margin: 6px 0 4px; font-size: 28px; font-weight: 650; }
+  .sub { color: var(--muted); margin-bottom: 18px; }
+  .pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .pills button { font: inherit; font-size: 14px; font-weight: 600; border-radius: 999px;
+    padding: 10px 14px; min-height: 44px; border: 1px solid var(--line); background: var(--panel2); color: var(--muted); }
+  .pills button.on { color: #1a1408; background: var(--accent); border-color: var(--accent); }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; margin: 0 0 12px; }
+  .kind { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+  .summary { font-weight: 650; font-size: 18px; }
+  .meta { color: var(--muted); font-size: 14px; margin-top: 6px; word-break: break-word; }
+  .payload { margin-top: 10px; font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: var(--muted); white-space: pre-wrap; word-break: break-word; }
+  .btns { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  button { font: inherit; font-size: 15px; font-weight: 600; border-radius: 12px; padding: 12px 16px;
+    min-height: 48px; cursor: pointer; border: 1px solid var(--line); background: var(--panel2); color: var(--text); }
+  button.primary { background: var(--accent); color: #1a1408; border-color: var(--accent); }
+  button.danger { background: #3a2222; color: #f0c8c8; border-color: #5a3030; }
+  button:disabled { opacity: .55; cursor: default; }
+  .empty { padding: 18px 4px; color: var(--muted); }
+  .status { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; padding: 2px 8px;
+    border-radius: 99px; color: var(--muted); border: 1px solid var(--line); }
+  .status.pending { color: var(--accent); border-color: #5a4a28; }
+  .status.approved { color: var(--on); }
+  .status.denied, .status.expired { color: var(--danger); }
+</style>
+</head>
+<body>
+  <div class="admin-bar">
+    <a href="/">Home</a>
+    <a href="/trips/">Trips</a>
+    <a href="/tickets/">Tickets</a>
+    <a href="/bots/">Briefing</a>
+    <a href="/bots/mail/">Mail log</a>
+    <a href="/bots/confirm/" class="on">Confirms</a>
+    <form method="post" action="/api/logout"><button type="submit">Sign out</button></form>
+  </div>
+  <div class="kicker">Bots · Cliff · outside Gmail</div>
+  <h1>Confirms</h1>
+  <p class="sub">Binding approvals for send / Todoist / pay. Cliff acts only after you approve. Nothing here is mail.</p>
+  <div class="pills" id="pills"></div>
+  <div id="list">Loading…</div>
+<script>
+let ITEMS = [];
+let FILTER = "pending";
+const FILTERS = [
+  ["pending", "Pending"],
+  ["approved", "Approved"],
+  ["all", "All"]
+];
+
+function esc(s) {
+  return String(s || "").replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"
+  }[c]));
+}
+
+function shown() {
+  if (FILTER === "all") return ITEMS;
+  return ITEMS.filter(c => c.status === FILTER);
+}
+
+function render() {
+  document.getElementById("pills").innerHTML = FILTERS.map(([id, label]) => {
+    const n = id === "all" ? ITEMS.length : ITEMS.filter(c => c.status === id).length;
+    return `<button type="button" class="${FILTER === id ? "on" : ""}" data-f="${id}">${label} ${n}</button>`;
+  }).join("");
+  const rows = shown();
+  const el = document.getElementById("list");
+  if (!rows.length) {
+    el.innerHTML = '<div class="empty">Nothing in this view.</div>';
+    return;
+  }
+  el.innerHTML = rows.map(c => {
+    const payload = c.payload && Object.keys(c.payload).length
+      ? `<div class="payload">${esc(JSON.stringify(c.payload, null, 2))}</div>`
+      : "";
+    const pending = c.status === "pending";
+    const btns = pending
+      ? `<div class="btns">
+          <button type="button" class="primary" data-id="${esc(c.id)}" data-act="approved">Approve</button>
+          <button type="button" class="danger" data-id="${esc(c.id)}" data-act="denied">Deny</button>
+        </div>`
+      : "";
+    return `<div class="card">
+      <div class="kind">${esc(c.kind || c.action || "confirm")} · <span class="status ${esc(c.status)}">${esc(c.status)}</span></div>
+      <div class="summary">${esc(c.summary)}</div>
+      <div class="meta">${esc(c.id)} · ${esc(c.requested_by || "cliff")} · expires ${esc(c.expires_at || "—")}</div>
+      ${payload}
+      ${btns}
+    </div>`;
+  }).join("");
+}
+
+function load() {
+  return fetch("/api/confirmations", { credentials: "include", cache: "no-store" })
+    .then(r => { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+    .then(d => {
+      ITEMS = d.confirmations || [];
+      render();
+    })
+    .catch(() => {
+      document.getElementById("list").innerHTML = '<div class="empty">Could not load confirmations.</div>';
+    });
+}
+
+document.getElementById("pills").addEventListener("click", e => {
+  const b = e.target.closest("button[data-f]");
+  if (!b) return;
+  FILTER = b.dataset.f;
+  render();
+});
+
+document.getElementById("list").addEventListener("click", e => {
+  const b = e.target.closest("button[data-id]");
+  if (!b) return;
+  b.disabled = true;
+  fetch("/api/confirmations", {
+    method: "PATCH",
+    credentials: "include",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ id: b.dataset.id, status: b.dataset.act })
+  })
+    .then(r => r.json().then(d => ({ ok: r.ok, d })))
+    .then(({ ok, d }) => {
+      if (!ok) throw new Error(d.error || "update failed");
+      return load();
+    })
+    .catch(err => {
+      b.disabled = false;
+      alert(err.message || "Could not update.");
+    });
+});
+
+load();
+</script>
+</body>
+</html>

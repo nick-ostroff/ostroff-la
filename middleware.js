@@ -1,7 +1,9 @@
 // Vercel Routing Middleware
 // - Existing subdomains 301 onto ostroff.la (tickets.ostroff.la is kept; do not delete).
 // - Private paths: /trips, /tickets, /bots, /morning + mail + Tesla APIs
-// - GET /api/mail-notes also allows Authorization: Bearer MAIL_NOTES_FEED_TOKEN
+// - GET/POST/PATCH /api/mail-notes also allows Authorization: Bearer MAIL_NOTES_FEED_TOKEN
+//   (handler: Bearer may ACK; create still needs an admin session)
+// - GET/POST/PATCH /api/confirmations also allows the same mail-notes feed Bearer
 // - GET/POST /api/tesla-morning also allows Authorization: Bearer TESLA_MORNING_FEED_TOKEN
 // - Admin session cookie (ostroff_admin) once ADMIN_SESSION_SECRET is set.
 // - Until then, nick / MORNING_BASIC_PASSWORD basic auth is the fail-closed stopgap.
@@ -75,6 +77,7 @@ function isPrivatePath(path) {
   return (
     path === '/api/morning-mail' ||
     path === '/api/mail-notes' ||
+    path === '/api/confirmations' ||
     path === '/api/tesla-morning' ||
     path === '/trips' || path.startsWith('/trips/') ||
     path === '/tickets' || path.startsWith('/tickets/') ||
@@ -137,10 +140,18 @@ export default async function middleware(req) {
   const session = await readSession(req.headers.get('cookie') || '');
   if (session) return;
 
-  // Proto (and other bots) may GET notes with a feed token. POST still needs a session.
+  // Proto/Cliff/Cap may GET notes and ACK them with the feed token.
+  // Creating a note still requires an admin session (enforced in the handler).
   if (
     path === '/api/mail-notes'
-    && req.method === 'GET'
+    && mailNotesFeedAuthorized(req.headers.get('authorization'))
+  ) {
+    return;
+  }
+
+  // Binding confirm-gate: same feed token for create/list/consume; Cap may approve.
+  if (
+    path === '/api/confirmations'
     && mailNotesFeedAuthorized(req.headers.get('authorization'))
   ) {
     return;
