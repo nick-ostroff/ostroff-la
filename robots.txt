@@ -5,6 +5,7 @@ Disallow: /tickets/
 Disallow: /unlock/
 Disallow: /login/
 Disallow: /bots/
+Disallow: /projects/
 Disallow: /api/
 Disallow: /morning/
 
