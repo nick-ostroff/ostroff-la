@@ -79,6 +79,8 @@ function isPrivatePath(path) {
     path === '/api/mail-notes' ||
     path === '/api/confirmations' ||
     path === '/api/tesla-morning' ||
+    path === '/api/projects' ||
+    path === '/projects' || path.startsWith('/projects/') ||
     path === '/trips' || path.startsWith('/trips/') ||
     path === '/tickets' || path.startsWith('/tickets/') ||
     path === '/bots' || path.startsWith('/bots/') ||
