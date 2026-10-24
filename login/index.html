@@ -3,60 +3,68 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Admin sign in — Ostroff.LA</title>
+  <title>Sign in — Ostroff.LA</title>
   <meta name="robots" content="noindex, nofollow" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..800;1,6..72,400..800&family=Archivo:wght@400..700&family=Libre+Franklin:wght@300..700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/site.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/app.css" />
 </head>
-<body>
-  <div class="page">
-    <div class="topline eyebrow">
-      <span>Admin</span>
-      <span></span>
-      <span>ostroff.la</span>
+<body class="login">
+  <svg class="wave" viewBox="0 0 1200 220" preserveAspectRatio="none" fill="none" aria-hidden="true">
+    <path d="M0 160 C 200 120, 380 200, 600 150 S 1000 90, 1200 140" stroke="#497d7e" stroke-opacity=".5" stroke-width="1.5"/>
+    <path d="M0 185 C 240 140, 420 215, 640 175 S 1020 120, 1200 170" stroke="#4c7a45" stroke-opacity=".45" stroke-width="1.5"/>
+    <path d="M0 205 C 260 170, 460 235, 700 195 S 1040 150, 1200 195" stroke="#e34432" stroke-opacity=".4" stroke-width="1.5"/>
+  </svg>
+
+  <div class="card auth">
+    <div class="mark">
+      <span class="sq"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 7.5l3 3 7-7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      Ostroff.la
     </div>
-    <div class="unlock">
-      <h1 class="serif">Ostroff<span style="color:var(--red)">.</span>la</h1>
-      <p data-lead>Private pages. Sign in with your own admin account.</p>
+    <p data-lead>Private pages. Sign in with your admin account.</p>
 
-      <form method="post" action="/api/login" class="stack" data-login>
-        <input type="hidden" name="next" value="/tickets/" data-next />
-        <input type="text" name="username" autocomplete="username" placeholder="Username" aria-label="Username" autofocus required />
-        <input type="password" name="password" autocomplete="current-password" placeholder="Password" aria-label="Password" required />
-        <button type="submit" class="btn">Sign in</button>
-      </form>
-      <p class="err" data-err hidden>That username or password didn’t match.</p>
-      <p class="err" data-locked hidden>Admin login is locked until ADMIN_SESSION_SECRET is set.</p>
+    <form method="post" action="/api/login" class="stack" data-login>
+      <input type="hidden" name="next" value="/today/" data-next />
+      <input class="input" type="text" name="username" autocomplete="username" placeholder="Username" aria-label="Username" autofocus required />
+      <input class="input" type="password" name="password" autocomplete="current-password" placeholder="Password" aria-label="Password" required />
+      <button type="submit" class="btn primary">Sign in</button>
+    </form>
+    <p class="err" data-err hidden>That username or password didn’t match.</p>
+    <p class="err" data-locked hidden>Sign-in is locked until ADMIN_SESSION_SECRET is set.</p>
 
-      <form class="stack" data-create hidden>
-        <input type="text" name="username" autocomplete="username" placeholder="Username" aria-label="New username" required />
-        <input type="password" name="password" autocomplete="new-password" placeholder="Password (8+ characters)" aria-label="New password" required minlength="8" />
-        <input type="password" name="setup" autocomplete="off" placeholder="Setup code" aria-label="Setup code" data-setup />
-        <button type="submit" class="btn solid">Create admin</button>
-      </form>
-      <p class="err" data-create-err hidden></p>
-      <p class="hint" data-create-ok hidden></p>
+    <form class="stack" data-create hidden>
+      <input class="input" type="text" name="username" autocomplete="username" placeholder="Username" aria-label="New username" required />
+      <input class="input" type="password" name="password" autocomplete="new-password" placeholder="Password (8+ characters)" aria-label="New password" required minlength="8" />
+      <input class="input" type="password" name="setup" autocomplete="off" placeholder="Setup code" aria-label="Setup code" data-setup />
+      <button type="submit" class="btn">Create admin</button>
+    </form>
+    <p class="err" data-create-err hidden></p>
+    <p class="fine" data-create-ok hidden></p>
 
-      <div data-signed-in hidden>
-        <nav class="nav" aria-label="Admin" style="border:0; padding:8px 0 20px">
-          <a href="/trips/">Trips</a>
-          <a href="/tickets/">Tickets</a>
-          <a href="/bots/">Bots</a>
-          <a href="/bots/mail/">Mail log</a>
-        </nav>
-        <form method="post" action="/api/logout"><button type="submit" class="btn">Sign out</button></form>
+    <div data-signed-in hidden>
+      <nav class="nav-list" aria-label="Portal">
+        <a href="/today/">Today</a>
+        <a href="/approvals/">Approvals</a>
+        <a href="/mail/">Mail log</a>
+        <a href="/projects/">Projects</a>
+        <a href="/tickets/">Tickets</a>
+        <a href="/trips/">Trips</a>
+      </nav>
+      <div class="stack">
+        <a class="btn primary" href="/today/">Open portal</a>
+        <form method="post" action="/api/logout"><button type="submit" class="btn" style="width:100%">Sign out</button></form>
       </div>
-
-      <p style="margin-top:28px"><a href="/" class="eyebrow">← Back to ostroff.la</a></p>
     </div>
+
+    <p class="fine"><a href="/">← Back to ostroff.la</a></p>
   </div>
+
   <script>
     const q = new URLSearchParams(location.search);
     const next = q.get('next') || '';
-    if (/^\/(trips|tickets|bots|morning)(\/|$)/.test(next)) document.querySelector('[data-next]').value = next;
+    if (/^\/(today|approvals|mail|projects|tickets|trips)(\/|$)/.test(next)) document.querySelector('[data-next]').value = next;
     if (q.get('err') === '1') document.querySelector('[data-err]').hidden = false;
     if (q.get('err') === 'locked') document.querySelector('[data-locked]').hidden = false;
 
@@ -88,7 +96,7 @@
         create.hidden = false;
         setup.hidden = true;
         setup.required = false;
-        lead.textContent = `Signed in as ${me.username}. Add another admin below, or open a section.`;
+        lead.textContent = `Signed in as ${me.username}. Open the portal, or add another admin below.`;
         return;
       }
 
@@ -100,7 +108,7 @@
       } else {
         create.hidden = true;
         setup.required = false;
-        lead.textContent = 'Private pages. Sign in with your own admin account.';
+        lead.textContent = 'Private pages. Sign in with your admin account.';
       }
     })();
 
@@ -129,7 +137,7 @@
       }
       createOk.hidden = false;
       create.reset();
-      if (!me) location.assign(document.querySelector('[data-next]').value || '/tickets/');
+      if (!me) location.assign(document.querySelector('[data-next]').value || '/today/');
     });
   </script>
 </body>
