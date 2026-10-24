@@ -3,31 +3,31 @@
     {
       "source": "/",
       "has": [{ "type": "host", "value": "grok.ostroff.la" }],
-      "destination": "https://ostroff.la/bots/",
+      "destination": "https://ostroff.la/today/",
       "permanent": true
     },
     {
       "source": "/mail",
       "has": [{ "type": "host", "value": "grok.ostroff.la" }],
-      "destination": "https://ostroff.la/bots/mail/",
+      "destination": "https://ostroff.la/mail/",
       "permanent": true
     },
     {
       "source": "/mail.html",
       "has": [{ "type": "host", "value": "grok.ostroff.la" }],
-      "destination": "https://ostroff.la/bots/mail/",
+      "destination": "https://ostroff.la/mail/",
       "permanent": true
     },
     {
       "source": "/morning",
       "has": [{ "type": "host", "value": "grok.ostroff.la" }],
-      "destination": "https://ostroff.la/bots/",
+      "destination": "https://ostroff.la/today/",
       "permanent": true
     },
     {
       "source": "/morning/:path*",
       "has": [{ "type": "host", "value": "grok.ostroff.la" }],
-      "destination": "https://ostroff.la/bots/:path*",
+      "destination": "https://ostroff.la/today/",
       "permanent": true
     },
     {
@@ -49,23 +49,38 @@
       "permanent": true
     },
     {
-      "source": "/mail",
-      "destination": "/bots/mail/",
+      "source": "/bots",
+      "destination": "/today/",
       "permanent": true
     },
     {
-      "source": "/mail.html",
-      "destination": "/bots/mail/",
+      "source": "/bots/mail",
+      "destination": "/mail/",
+      "permanent": true
+    },
+    {
+      "source": "/bots/confirm",
+      "destination": "/approvals/",
       "permanent": true
     },
     {
       "source": "/morning",
-      "destination": "/bots/",
+      "destination": "/today/",
       "permanent": true
     },
     {
       "source": "/morning/mail.html",
-      "destination": "/bots/mail/",
+      "destination": "/mail/",
+      "permanent": true
+    },
+    {
+      "source": "/morning/:path*",
+      "destination": "/today/",
+      "permanent": true
+    },
+    {
+      "source": "/mail.html",
+      "destination": "/mail/",
       "permanent": true
     }
   ]
