@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Approvals — Ostroff.LA</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/app.css" />
+</head>
+<body class="app">
+  <aside class="side" data-sidebar></aside>
+  <main class="main" data-page-title="Approvals">
+    <h1 class="page-title">Approvals</h1>
+    <p class="page-sub">Binding approvals for send / Todoist / pay. Cliff acts only after you approve. Nothing here is mail.</p>
+    <div class="pills" id="pills" role="tablist" aria-label="Filter"></div>
+    <p class="err" data-err hidden></p>
+    <div id="list" class="empty">Loading…</div>
+  </main>
+
+  <script src="/assets/app.js"></script>
+  <script>
+let ITEMS = [];
+let FILTER = "pending";
+const FILTERS = [
+  ["pending", "Pending"],
+  ["approved", "Approved"],
+  ["all", "All"]
+];
+const KIND = { send_email: "Send", send: "Send", todoist_create: "Todoist", todoist: "Todoist", payment: "Pay", pay: "Pay" };
+
+function esc(s) {
+  return String(s || "").replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"
+  }[c]));
+}
+
+function shown() {
+  if (FILTER === "all") return ITEMS;
+  return ITEMS.filter(c => c.status === FILTER);
+}
+
+function expiryLabel(iso) {
+  if (!iso) return "no expiry";
+  const t = new Date(iso).getTime();
+  if (Number.isNaN(t)) return "no expiry";
+  const ms = t - Date.now();
+  if (ms <= 0) return "expired";
+  const m = Math.round(ms / 60000);
+  if (m < 60) return `expires in ${m}m`;
+  const h = Math.round(m / 60);
+  if (h < 48) return `expires in ${h}h`;
+  return `expires in ${Math.round(h / 24)}d`;
+}
+
+function statusBadge(c) {
+  const s = c.status || "pending";
+  if (s === "pending") return `<span class="badge wait">Pending · ${esc(expiryLabel(c.expires_at))}</span>`;
+  if (s === "approved" || s === "consumed") return `<span class="badge ok">${esc(s)}</span>`;
+  return `<span class="badge">${esc(s)}</span>`;
+}
+
+function render() {
+  document.getElementById("pills").innerHTML = FILTERS.map(([id, label]) => {
+    const n = id === "all" ? ITEMS.length : ITEMS.filter(c => c.status === id).length;
+    return `<button type="button" role="tab" class="pill ${FILTER === id ? "on" : ""}" aria-selected="${FILTER === id}" data-f="${id}">${label} <span class="muted">${n}</span></button>`;
+  }).join("");
+  const rows = shown();
+  const el = document.getElementById("list");
+  el.className = "";
+  if (!rows.length) {
+    el.innerHTML = '<div class="empty">Nothing in this view.</div>';
+    return;
+  }
+  let firstPending = true;
+  el.innerHTML = rows.map(c => {
+    const pending = c.status === "pending";
+    const payload = c.payload && Object.keys(c.payload).length
+      ? `<details class="payload-wrap"><summary>Details</summary><div class="payload">${esc(JSON.stringify(c.payload, null, 2))}</div></details>`
+      : "";
+    const primary = pending && firstPending;
+    if (pending) firstPending = false;
+    const btns = pending
+      ? `<div class="act">
+          <button type="button" class="btn ghost" data-id="${esc(c.id)}" data-act="denied">Deny</button>
+          <button type="button" class="btn${primary ? " primary" : ""}" data-id="${esc(c.id)}" data-act="approved">Approve</button>
+        </div>`
+      : "";
+    const chk = pending ? "chk p1" : (c.status === "approved" || c.status === "consumed") ? "chk done" : "chk";
+    return `<div class="row">
+      <div class="${chk}"></div>
+      <div class="body">
+        <div class="t">${esc(c.summary)}</div>
+        <div class="m">
+          <span class="badge">${esc(KIND[c.kind || c.action] || c.kind || c.action || "confirm")}</span>
+          ${statusBadge(c)}
+          <span>${esc(c.requested_by || "cliff")}</span>
+          <span class="muted">${esc(c.id)}</span>
+          ${c.decided_by ? `<span>${esc(c.status)} by ${esc(c.decided_by)}</span>` : ""}
+        </div>
+        ${payload}
+      </div>
+      ${btns}
+    </div>`;
+  }).join("");
+}
+
+function load() {
+  return fetch("/api/confirmations", { credentials: "include", cache: "no-store" })
+    .then(r => { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+    .then(d => {
+      ITEMS = d.confirmations || [];
+      render();
+    })
+    .catch(() => {
+      document.getElementById("list").innerHTML = '<div class="empty">Could not load approvals.</div>';
+    });
+}
+
+document.getElementById("pills").addEventListener("click", e => {
+  const b = e.target.closest("button[data-f]");
+  if (!b) return;
+  FILTER = b.dataset.f;
+  render();
+});
+
+document.getElementById("list").addEventListener("click", e => {
+  const b = e.target.closest("button[data-id]");
+  if (!b) return;
+  const err = document.querySelector("[data-err]");
+  err.hidden = true;
+  b.disabled = true;
+  fetch("/api/confirmations", {
+    method: "PATCH",
+    credentials: "include",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ id: b.dataset.id, status: b.dataset.act })
+  })
+    .then(r => r.json().then(d => ({ ok: r.ok, d })))
+    .then(({ ok, d }) => {
+      if (!ok) throw new Error(d.error || "update failed");
+      document.dispatchEvent(new Event("portal:refresh-badge"));
+      return load();
+    })
+    .catch(ex => {
+      b.disabled = false;
+      err.textContent = ex.message || "Could not update.";
+      err.hidden = false;
+    });
+});
+
+load();
+  </script>
+</body>
+</html>
