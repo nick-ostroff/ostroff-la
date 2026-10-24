@@ -1,5 +1,6 @@
 // GET /api/morning-mail — filing log JSON plus per-row notes.
-// Production source is the Vercel secret MORNING_MAIL_JSON (plain JSON or
+// Production source is private Vercel Blob mail-log.json (written by the
+// box script /home/box/shared/mail-log/run.sh), falling back to the Vercel secret MORNING_MAIL_JSON (plain JSON or
 // gz: + gzip/base64 so labels fit the 64KB env cap). Locally, fall back
 // to .data/morning-mail.json or a rebuild from gmail-batch/logs per-box
 // CSVs. Notes come from the filing-corrections store. Never commit those
@@ -27,10 +28,25 @@ function parseMail(raw) {
       rows: data.rows || [],
       corrs: data.corrs || [],
       boxes: data.boxes || [],
+      ...(data.window_days ? { window_days: data.window_days } : {}),
+      ...(data.generated_at ? { generated_at: data.generated_at } : {}),
     };
   } catch {
     return null;
   }
+}
+
+export const MAIL_BLOB_PATHNAME = 'mail-log.json';
+
+export async function readMailBlob(client) {
+  const token = String(process.env.BLOB_READ_WRITE_TOKEN || '').trim();
+  if (!client && !token) return '';
+  try {
+    const { get } = client || await import('@vercel/blob');
+    const r = await get(MAIL_BLOB_PATHNAME, { access: 'private', useCache: false, ...(token ? { token } : {}) });
+    if (r && r.statusCode === 200 && r.stream) return await new Response(r.stream).text();
+  } catch {}
+  return '';
 }
 
 async function loadLocal() {
@@ -57,6 +73,11 @@ export default async function handler(req, res) {
     res.statusCode = 405;
     res.setHeader('Allow', 'GET');
     return res.end('Method Not Allowed');
+  }
+  const fromBlob = await readMailBlob();
+  if (fromBlob.trim()) {
+    const merged = await withNotes(fromBlob);
+    if (merged) return send(res, 200, merged);
   }
   const fromEnv = process.env.MORNING_MAIL_JSON || '';
   if (fromEnv.trim()) {
