@@ -107,7 +107,7 @@
         if (d.battery_range_mi != null) bits.push(`${d.battery_range_mi} mi`);
         if (d.charge_limit_soc != null) bits.push(`limit ${d.charge_limit_soc}%`);
         if (d.charging_state && d.charging_state !== 'Disconnected') bits.push(String(d.charging_state).toLowerCase());
-        const main = d.battery_level_pct != null ? `${d.battery_level_pct}%` : esc(d.line);
+        const main = d.battery_level_pct != null ? `${d.battery_level_pct}%` : String(d.line);
         tile('tesla', `${esc(main)}${bits.length ? `<small>${esc(bits.join(' · '))}</small>` : ''}`, `Otto · ${d.display_name || 'Tesla'}`);
         if (d.as_of_pt) setSub(`${fmtToday()} · briefing updated ${d.as_of_pt}`);
       } catch { tile('tesla', '—'); }
@@ -152,7 +152,18 @@
           <div class="act"><button type="button" class="btn ghost" data-act="denied">Deny</button><button type="button" class="btn${i === 0 ? ' primary' : ''}" data-act="approved">Approve</button></div>
         </div>`).join(''));
       } catch (e) {
-        if (String(e.message) !== '401') { tile('needs', '—'); section('needs', [], ''); }
+        if (String(e.message) !== '401') {
+          // Do not read an outage as "all clear": keep the section visible with an error line.
+          tile('needs', '—');
+          state.needs = null;
+          s.hidden = false;
+          $('[data-n]', s).textContent = '';
+          $('[data-list]', s).innerHTML = '';
+          const err = $('[data-err]', s);
+          err.textContent = 'Could not load approvals right now.';
+          err.hidden = false;
+          $('[data-all-quiet]').hidden = true;
+        }
       }
       $('[data-list]', s).onclick = async (e) => {
         const b = e.target.closest('button[data-act]'); if (!b) return;
