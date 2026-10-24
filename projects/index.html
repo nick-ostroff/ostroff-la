@@ -50,9 +50,36 @@
   .links code { font:11px var(--mono); }
   .col .empty { font-size:12px; padding:8px; }
   .kbd { color:var(--color-graphite); font-size:11px; padding:24px 0 0; }
+  .viewtog { display:flex; gap:0; border:1px solid var(--color-stone); border-radius:var(--radius); overflow:hidden; }
+  .viewtog button { background:var(--color-paper); border:0; padding:6px 12px; font:600 12px inherit; font-family:inherit; color:var(--color-pencil); cursor:pointer; }
+  .viewtog button.on { background:var(--color-ink); color:var(--color-paper); }
+  .lfilters { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 10px; align-items:center; }
+  .lfilters select { font:12px inherit; font-family:inherit; padding:5px 6px; border:1px solid var(--color-stone); border-radius:6px; background:var(--color-paper); color:var(--color-ink); }
+  .lfilters label { font-size:12px; color:var(--color-pencil); display:flex; gap:4px; align-items:center; }
+  .ltable { width:100%; border-collapse:collapse; font-size:12.5px; }
+  .ltable th { text-align:left; font-size:11px; font-weight:600; color:var(--color-pencil); padding:6px 8px; border-bottom:1px solid var(--color-stone); cursor:pointer; white-space:nowrap; user-select:none; position:sticky; top:0; background:var(--color-paper); z-index:1; }
+  .ltable th[data-dir="asc"]::after { content:" ▲"; } .ltable th[data-dir="desc"]::after { content:" ▼"; }
+  .ltable td { padding:8px; border-bottom:1px solid var(--color-stone); vertical-align:top; }
+  .ltable tr.lrow { cursor:pointer; } .ltable tr.lrow:hover td { background:var(--color-cream); }
+  .ltable tr.ldet td { background:var(--color-cream); padding:10px 14px 14px; }
+  .lname { display:flex; gap:8px; align-items:center; min-width:170px; }
+  .ldesc { color:var(--color-pencil); max-width:420px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+  .colpill { font-size:11px; font-weight:600; border-radius:999px; padding:1px 8px; color:#fff; background:var(--c); white-space:nowrap; }
+  .chips { display:flex; flex-wrap:wrap; gap:3px; } .chip { font-size:10.5px; border-radius:4px; padding:0 5px; background:var(--wash-ink); color:var(--color-pencil); white-space:nowrap; }
+  .warnflag { font-size:10.5px; font-weight:600; color:var(--needs); white-space:nowrap; }
+  .detgrid { display:grid; grid-template-columns:110px 1fr; gap:6px 12px; font-size:12.5px; }
+  .detgrid dt { color:var(--color-pencil); font-weight:600; } .detgrid dd { margin:0; }
+  .lcards { display:none; }
+  .lcard { border-left:4px solid var(--pc); padding:10px 12px; margin-bottom:8px; }
+  @media (max-width: 820px) {
+    .ltable { display:none; } .lcards { display:block; }
+    .detgrid { grid-template-columns:1fr; } .detgrid dt { margin-top:6px; }
+  }
   @media (max-width: 820px) {
     .tabs { display:flex; }
-    .search { margin-left:0; flex:1 1 100%; }
+    .search { margin-left:0; flex:1 1 100%; flex-wrap:wrap; min-width:0; }
+    .search .input { flex:1 1 100%; }
+    .lfilters select { flex:1 1 30%; min-width:0; }
     .board { grid-template-columns:repeat(4,100%); overflow-x:auto; scroll-snap-type:x mandatory; gap:0; margin:0 -16px; padding:0 0 40px; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
     .board::-webkit-scrollbar { display:none; }
     .col { scroll-snap-align:start; margin:0 10px; background:transparent; padding:0; }
@@ -69,13 +96,30 @@
     <span class="meta" id="gen">loading…</span>
     <div class="search">
       <input id="q" class="input sm" type="search" placeholder="Filter projects…  ( / )" autocomplete="off" aria-label="Filter projects" />
+      <div class="viewtog" role="tablist" aria-label="View"><button type="button" id="vBoard" class="on">Board</button><button type="button" id="vList">List</button></div>
       <button class="pill" id="hideQuiet" aria-pressed="false" title="Hide stale quiet projects">Hide stale</button>
     </div>
   </div>
   <div class="tabs" id="tabs" role="tablist"></div>
   <section class="attn" id="attn" hidden><h2 class="eyebrow">Attention</h2><ul id="attnList"></ul></section>
-  <div class="board" id="board"></div>
-  <p class="kbd">Keys: <b>/</b> search · <b>1–4</b> jump to column · <b>j/k</b> next/prev card · <b>o</b> open live site · <b>g</b> GitHub · <b>Esc</b> clear</p>
+  <div id="boardWrap"><div class="board" id="board"></div></div>
+  <section id="listWrap" hidden>
+    <div class="lfilters">
+      <select id="fBucket" aria-label="Bucket"><option value="">All buckets</option></select>
+      <select id="fStatus" aria-label="Status"><option value="">All statuses</option><option value="needs">Needs you</option><option value="active">In progress</option><option value="blocked">Blocked</option><option value="quiet">Quiet</option></select>
+      <select id="fStack" aria-label="Stack"><option value="">Any stack</option></select>
+      <label><input type="checkbox" id="fNoClaude" /> CLAUDE.md missing/stale</label>
+      <label><input type="checkbox" id="fHideCopies" checked /> Hide working copies</label>
+      <select id="fSort" aria-label="Sort" class="lsort-m"><option value="name">Sort: name</option><option value="commit">Sort: last commit</option><option value="status">Sort: status</option><option value="bucket">Sort: bucket</option></select>
+      <span class="meta" id="lcount"></span>
+    </div>
+    <table class="ltable"><thead><tr>
+      <th data-k="name">Project</th><th data-k="bucket">Bucket</th><th data-k="status">Status</th><th data-k="desc">Description</th>
+      <th data-k="stack">Stack</th><th data-k="claude">CLAUDE.md</th><th data-k="commit">Last commit</th><th>Links</th>
+    </tr></thead><tbody id="ltbody"></tbody></table>
+    <div class="lcards" id="lcards"></div>
+  </section>
+  <p class="kbd">Keys: <b>b</b>/<b>l</b> board/list · <b>/</b> search · <b>1–4</b> jump to column · <b>j/k</b> next/prev card · <b>o</b> open live site · <b>g</b> GitHub · <b>Esc</b> clear</p>
 </main>
 <script src="/assets/app.js"></script>
 <script>
@@ -144,7 +188,8 @@ function render() {
   if (!DATA) return;
   const q = $('#q').value.trim().toLowerCase();
   const hide = $('#hideQuiet').getAttribute('aria-pressed') === 'true';
-  const list = DATA.projects.filter((p) => !q || JSON.stringify([p.name, p.slug, p.github, p.local, p.reasons, p.note && p.note.text]).toLowerCase().includes(q))
+  if (VIEW === 'list') return renderList();
+  const list = DATA.projects.filter((p) => !p.list_only).filter((p) => !q || JSON.stringify([p.name, p.slug, p.github, p.local, p.reasons, p.note && p.note.text]).toLowerCase().includes(q))
     .filter((p) => !(hide && p.stale_days != null));
   const by = Object.fromEntries(COLS.map((c) => [c.id, []]));
   list.forEach((p) => { if (by[p.column]) by[p.column].push(p); });
@@ -182,12 +227,12 @@ async function load() {
     if (j.empty) { $('#gen').textContent = 'No snapshot yet — the box routine has not uploaded one.'; return; }
     DATA = j;
     const s = j.sources || {};
-    $('#gen').textContent = `updated ${ago(j.generated_at)} · ${j.projects.length} projects`;
+    $('#gen').textContent = `updated ${ago(j.generated_at)} · ${j.projects.filter((p) => !p.list_only).length} on board · ${j.projects.length} total${j.local_collected_at ? ' · local scan ' + ago(j.local_collected_at) : ''}`;
     $('#gen').title = `Snapshot ${j.generated_at}\nSources: ${Object.entries(s).map(([k, v]) => `${k} ${v === true ? 'ok' : v === false ? 'MISSING' : v}`).join(', ')}`;
     const a = j.attention || [];
     $('#attn').hidden = !a.length;
     $('#attnList').innerHTML = a.map((x) => `<li>${x.project ? `<b>${esc(x.project)}</b> · ` : ''}${safeUrl(x.link) ? `<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.text)}</a>` : esc(x.text)} <span class="meta">${esc(x.from || '')} ${esc(ago(x.created_at))}</span></li>`).join('');
-    render();
+    fillFilters(); setView(VIEW);
   } catch { $('#gen').textContent = 'Snapshot unavailable.'; }
 }
 document.addEventListener('click', async (e) => {
@@ -204,6 +249,9 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') { $('#q').value = ''; $('#q').blur(); render(); return; }
   if (inInput) return;
   if (e.key === '/') { e.preventDefault(); $('#q').focus(); }
+  else if (e.key === 'b') setView('board');
+  else if (e.key === 'l') setView('list');
+  else if (VIEW === 'list') return;
   else if ('1234'.includes(e.key)) jump(+e.key - 1);
   else if (e.key === 'j') move(1);
   else if (e.key === 'k') move(-1);
@@ -213,6 +261,129 @@ document.addEventListener('keydown', (e) => {
     if (u) window.open(u, '_blank', 'noopener');
   }
 });
+
+let VIEW = localStorage.getItem('projView') === 'list' ? 'list' : 'board';
+let SORT = { k: 'name', dir: 'asc' }, OPEN = new Set();
+const COLMAP = Object.fromEntries(COLS.map((c, i) => [c.id, { ...c, i }]));
+const BUCKETS = { '99-apps': '99 Apps', 'nick-ostroff': 'Nick Ostroff', 'pixelocity-apps': 'Pixelocity' };
+const commitOf = (p) => (p.github_info && p.github_info.last_commit) || (p.info && p.info.local_commit) || null;
+function linksFor(p) {
+  const I = p.info || {}, d = p.deploy, live = safeUrl(p.url), c = commitOf(p);
+  const vd = (d && safeUrl(d.dashboard)) || safeUrl(I.vercel_dashboard);
+  return [
+    p.github && `<a href="https://github.com/${esc(p.github)}" target="_blank" rel="noopener">GitHub</a>`,
+    p.github && `<a href="https://github.com/${esc(p.github)}/pulls" target="_blank" rel="noopener">PRs</a>`,
+    vd && `<a href="${esc(vd)}" target="_blank" rel="noopener">Vercel</a>`,
+    safeUrl(I.preview) && `<a href="${esc(I.preview)}" target="_blank" rel="noopener">Previews</a>`,
+    live && `<a href="${esc(live)}" target="_blank" rel="noopener">Live ↗</a>`,
+    safeUrl(I.supabase) && `<a href="${esc(I.supabase)}" target="_blank" rel="noopener">Supabase</a>`,
+    p.github && I.has_claude && `<a href="https://github.com/${esc(p.github)}/blob/HEAD/CLAUDE.md" target="_blank" rel="noopener">CLAUDE.md</a>`,
+    p.local && `<button type="button" data-copy="${esc(MAC_ROOT + p.local)}" title="Copy Mac Studio path"><code>${esc(p.local)}</code> · copy</button>`,
+  ].filter(Boolean).join('');
+}
+function claudeFlag(I) {
+  if (!I) return '<span class="muted">not local</span>';
+  if (!I.has_claude) return `<span class="warnflag">missing${I.has_readme ? ' · README only' : ''}</span>`;
+  return I.claude_stale ? `<span class="warnflag" title="CLAUDE.md last edited ${esc(I.claude_mtime)}; repo has newer commits (>14d)">stale · ${esc(ago(I.claude_mtime))}</span>` : `<span class="muted">ok · ${esc(ago(I.claude_mtime))}</span>`;
+}
+function details(p) {
+  const I = p.info || {}, c = commitOf(p), g = p.github_info || {};
+  const row = (k, v) => v ? `<dt>${k}</dt><dd>${v}</dd>` : '';
+  return `<dl class="detgrid">
+    ${row('Description', I.description !== I.claude_summary ? esc(I.description) : '')}
+    ${row('Goal', esc(I.goal))}
+    ${row('CLAUDE.md', (I.claude_summary ? esc(I.claude_summary) + '<br>' : '') + claudeFlag(p.info))}
+    ${row('Sections', (I.claude_sections || []).length ? `<div class="chips">${I.claude_sections.map((x) => `<span class="chip">${esc(x)}</span>`).join('')}</div>` : '')}
+    ${row('README', esc(I.readme_summary))}
+    ${row('Status', `<span class="colpill" style="--c:${COLMAP[p.column].c}">${COLMAP[p.column].label}</span> ${(p.reasons || []).map((r) => esc(r)).join(' · ')}`)}
+    ${row('Last commit', c ? `${c.url ? `<a href="${esc(safeUrl(c.url) || '#')}" target="_blank" rel="noopener">${esc(c.sha)}</a>` : esc(c.sha)} ${esc(c.msg)} · ${esc(ago(c.at))}${I.branch ? ` · local branch <code>${esc(I.branch)}</code>` : ''}` : '')}
+    ${row('Open PRs', (g.prs || []).map((x) => `<a href="${esc(safeUrl(x.url) || '#')}" target="_blank" rel="noopener">#${esc(x.n)}</a> ${esc(x.title)}`).join('<br>'))}
+    ${row('Deploy', p.deploy ? `${esc((p.deploy.state || '').toLowerCase())} · ${esc(ago(p.deploy.at))}` : '')}
+    ${row('Note', p.note ? `<b>${esc(p.note.bot)}</b> ${esc(ago(p.note.at))}: ${esc(p.note.text)}` : '')}
+    ${row('Copy of', p.variant_of ? esc(p.variant_of) + (p.registry_note ? ' · ' + esc(p.registry_note) : '') : '')}
+    ${row('Folder', p.local ? `<code>${esc(MAC_ROOT + p.local)}</code>` : '')}
+    ${row('Links', `<div class="links" style="margin:0">${linksFor(p)}</div>`)}
+  </dl>`;
+}
+function sortVal(p, k) {
+  const I = p.info || {};
+  if (k === 'name') return p.name.toLowerCase();
+  if (k === 'bucket') return (I.bucket || 'zz') + p.name.toLowerCase();
+  if (k === 'status') return COLMAP[p.column].i;
+  if (k === 'desc') return (I.description || '~').toLowerCase();
+  if (k === 'stack') return (I.stack || []).join(',') || '~';
+  if (k === 'claude') return !I.bucket ? 3 : !I.has_claude ? 0 : I.claude_stale ? 1 : 2;
+  if (k === 'commit') { const c = commitOf(p); return c ? new Date(c.at).getTime() : 0; }
+  return '';
+}
+function renderList() {
+  const q = $('#q').value.trim().toLowerCase();
+  const fb = $('#fBucket').value, fs = $('#fStatus').value, fk = $('#fStack').value, fc = $('#fNoClaude').checked, hc = $('#fHideCopies').checked;
+  let list = DATA.projects.filter((p) => {
+    const I = p.info || {};
+    if (fb && (I.bucket || 'other') !== fb) return false;
+    if (fs && p.column !== fs) return false;
+    if (fk && !(I.stack || []).includes(fk)) return false;
+    if (fc && !(I.bucket && (!I.has_claude || I.claude_stale))) return false;
+    if (hc && p.variant_of) return false;
+    return !q || JSON.stringify([p.name, p.slug, p.github, p.local, I.description, I.goal, I.claude_summary, I.readme_summary, I.stack, p.reasons]).toLowerCase().includes(q);
+  });
+  const dir = SORT.dir === 'asc' ? 1 : -1;
+  list.sort((a, b) => { const x = sortVal(a, SORT.k), y = sortVal(b, SORT.k); return (x < y ? -1 : x > y ? 1 : 0) * dir || a.name.localeCompare(b.name); });
+  $('#lcount').textContent = `${list.length} of ${DATA.projects.length}`;
+  document.querySelectorAll('.ltable th[data-k]').forEach((th) => th.dataset.dir = th.dataset.k === SORT.k ? SORT.dir : '');
+  $('#ltbody').innerHTML = list.map((p) => {
+    const I = p.info || {}, c = commitOf(p), C = COLMAP[p.column];
+    return `<tr class="lrow" data-slug="${esc(p.slug)}" tabindex="0" style="--pc:${esc(p.color || '#94928f')}">
+      <td><div class="lname"><div class="ico" aria-hidden="true">${esc(p.icon || '•')}</div><div><div class="name">${esc(p.name)}</div><div class="sub">${p.variant_of ? 'copy of ' + esc(p.variant_of) : esc(p.slug)}${p.paused ? ' · paused' : ''}</div></div></div></td>
+      <td>${esc(BUCKETS[I.bucket] || (I.bucket ? I.bucket : 'box/other'))}</td>
+      <td><span class="colpill" style="--c:${C.c}">${C.label}</span></td>
+      <td><div class="ldesc" title="${esc(I.description || '')}">${esc(I.description || '') || '<span class="muted">—</span>'}</div></td>
+      <td><div class="chips">${(I.stack || []).map((x) => `<span class="chip">${esc(x)}</span>`).join('')}</div></td>
+      <td>${claudeFlag(p.info)}</td>
+      <td style="white-space:nowrap">${c ? `${esc(ago(c.at))}<div class="sub">${esc(c.sha)}</div>` : '<span class="muted">—</span>'}</td>
+      <td><div class="links" style="margin:0">${linksFor(p)}</div></td></tr>
+      ${OPEN.has(p.slug) ? `<tr class="ldet"><td colspan="8">${details(p)}</td></tr>` : ''}`;
+  }).join('') || '<tr><td colspan="8" class="muted">No projects match.</td></tr>';
+  $('#lcards').innerHTML = list.map((p) => {
+    const I = p.info || {}, c = commitOf(p), C = COLMAP[p.column];
+    return `<article class="card lcard" style="--pc:${esc(p.color || '#94928f')}">
+      <div class="ch" data-toggle="${esc(p.slug)}" style="cursor:pointer"><div class="ico" aria-hidden="true">${esc(p.icon || '•')}</div>
+        <div style="flex:1;min-width:0"><div class="name">${esc(p.name)}</div><div class="sub">${esc(BUCKETS[I.bucket] || 'box/other')} · ${c ? 'commit ' + esc(ago(c.at)) : 'no commits'}</div></div>
+        <span class="colpill" style="--c:${C.c}">${C.label}</span></div>
+      ${I.description ? `<div class="commit">${esc(I.description)}</div>` : ''}
+      <div class="reasons"><div class="chips">${(I.stack || []).map((x) => `<span class="chip">${esc(x)}</span>`).join('')}</div> ${claudeFlag(p.info)}</div>
+      ${OPEN.has(p.slug) ? `<div style="margin-top:8px">${details(p)}</div>` : `<div class="links">${linksFor(p)}<button type="button" data-toggle="${esc(p.slug)}">More ▾</button></div>`}
+    </article>`;
+  }).join('') || '<p class="muted">No projects match.</p>';
+}
+function setView(v) {
+  VIEW = v; localStorage.setItem('projView', v);
+  $('#vBoard').classList.toggle('on', v === 'board'); $('#vList').classList.toggle('on', v === 'list');
+  $('#boardWrap').hidden = v !== 'board'; $('#listWrap').hidden = v !== 'list';
+  $('#tabs').style.visibility = v === 'board' ? '' : 'hidden'; $('#tabs').style.height = v === 'board' ? '' : '0';
+  $('#hideQuiet').hidden = v !== 'board';
+  render();
+}
+function fillFilters() {
+  const b = new Set(), k = new Set();
+  DATA.projects.forEach((p) => { if (p.info) { b.add(p.info.bucket); (p.info.stack || []).forEach((x) => k.add(x)); } });
+  const keep = (id, opts, lab) => { const el = $(id), cur = el.value; el.innerHTML = `<option value="">${lab}</option>` + opts.map(([v, l]) => `<option value="${esc(v)}">${esc(l)}</option>`).join(''); el.value = cur; };
+  keep('#fBucket', [...b].sort().map((x) => [x, BUCKETS[x] || x]).concat([['other', 'Box / other']]), 'All buckets');
+  keep('#fStack', [...k].sort().map((x) => [x, x]), 'Any stack');
+}
+document.addEventListener('click', (e) => {
+  const th = e.target.closest('.ltable th[data-k]');
+  if (th) { SORT = { k: th.dataset.k, dir: SORT.k === th.dataset.k && SORT.dir === 'asc' ? 'desc' : (th.dataset.k === 'commit' ? 'desc' : 'asc') }; $('#fSort').value = ['name','commit','status','bucket'].includes(SORT.k) ? SORT.k : $('#fSort').value; return renderList(); }
+  if (e.target.closest('a, button[data-copy]')) return;
+  const t = e.target.closest('[data-toggle], tr.lrow'); if (!t) return;
+  const slug = t.dataset.toggle || t.dataset.slug;
+  OPEN.has(slug) ? OPEN.delete(slug) : OPEN.add(slug); renderList();
+});
+['#fBucket', '#fStatus', '#fStack', '#fNoClaude', '#fHideCopies'].forEach((id) => $(id).addEventListener('change', () => renderList()));
+$('#fSort').addEventListener('change', (e) => { SORT = { k: e.target.value, dir: e.target.value === 'commit' ? 'desc' : 'asc' }; renderList(); });
+$('#vBoard').addEventListener('click', () => setView('board'));
+$('#vList').addEventListener('click', () => setView('list'));
 load(); setInterval(load, 5 * 60 * 1000);
 </script>
 </body>
