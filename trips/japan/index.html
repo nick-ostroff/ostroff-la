@@ -8,22 +8,12 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..800;1,6..72,400..800&family=Archivo:wght@400..700&family=Libre+Franklin:wght@300..700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/site.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/app.css" />
 </head>
-<body>
-  <div class="page section-trips" style="padding-top:36px">
-    <div class="bar">
-      <a class="brand" href="/trips/">Trips<span class="dot">.</span></a>
-      <nav class="nav" aria-label="Admin">
-        <a href="/">Home</a>
-        <a href="/trips/" aria-current="page">Trips</a>
-        <a href="/tickets/">Tickets</a>
-        <a href="/bots/">Bots</a>
-      </nav>
-      <span class="eyebrow">ostroff.la</span>
-    </div>
-
+<body class="app trips">
+  <aside class="side" data-sidebar></aside>
+  <main class="main wide" data-page-title="Trips">
     <div class="crumbs">
       <a href="/trips/">← All trips</a><span>/</span><span class="here">Japan, May 2027</span>
     </div>
@@ -52,29 +42,29 @@
         <div class="sticky">
           <div class="mapbox" aria-label="Route map: Tokyo to Kyoto to Osaka">
             <svg viewBox="0 0 320 400" xmlns="http://www.w3.org/2000/svg">
-              <path d="M240 90 C 200 170, 150 220, 120 270 C 105 292, 95 310, 88 330" fill="none" stroke="#3d6b4f" stroke-width="2" stroke-dasharray="5 6"/>
-              <g font-family="Archivo, sans-serif" font-size="12" font-weight="600" fill="#1a1815" letter-spacing="1.2">
-                <circle cx="240" cy="90" r="7" fill="#1a1815"/><text x="256" y="95">TOKYO</text>
-                <text x="256" y="111" font-weight="500" fill="#8a857c" font-size="10.5">MAY 6–12</text>
-                <circle cx="120" cy="270" r="7" fill="#1a1815"/><text x="136" y="266">KYOTO</text>
-                <text x="136" y="282" font-weight="500" fill="#8a857c" font-size="10.5">MAY 13–16</text>
-                <circle cx="88" cy="330" r="7" fill="#1a1815"/><text x="104" y="346">OSAKA</text>
-                <text x="104" y="362" font-weight="500" fill="#8a857c" font-size="10.5">MAY 17–20 · KIX</text>
+              <path d="M240 90 C 200 170, 150 220, 120 270 C 105 292, 95 310, 88 330" fill="none" stroke="#446c3d" stroke-width="2" stroke-dasharray="5 6"/>
+              <g font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#25221e" letter-spacing="0.5">
+                <circle cx="240" cy="90" r="7" fill="#25221e"/><text x="256" y="95">Tokyo</text>
+                <text x="256" y="111" font-weight="500" fill="#94928f" font-size="10.5">May 6–12</text>
+                <circle cx="120" cy="270" r="7" fill="#25221e"/><text x="136" y="266">Kyoto</text>
+                <text x="136" y="282" font-weight="500" fill="#94928f" font-size="10.5">May 13–16</text>
+                <circle cx="88" cy="330" r="7" fill="#25221e"/><text x="104" y="346">Osaka</text>
+                <text x="104" y="362" font-weight="500" fill="#94928f" font-size="10.5">May 17–20 · KIX</text>
               </g>
             </svg>
           </div>
-          <div class="mapcap eyebrow">
+          <div class="mapcap">
             <span>Tokyo · Kyoto · Osaka</span>
             <span class="hi">Nozomi between</span>
           </div>
         </div>
       </aside>
 
-      <main>
+      <section>
         <p class="intro-italic">Miles is the travel bot drafting this from the trip parameters. Nothing is booked until you say so.</p>
         <h2 class="h2">2 weeks</h2>
-        <p class="prose soft" style="font-size:16px; margin-bottom:20px">Sumo is the reason. Two weeks is the trip. Tokyo May 6–12 (heya if posted, one weekday in chairs), then Kyoto for Aoi Matsuri on the 15th, then Osaka. A third city only if you both want it — pick from the list, do not stack. Individual Nozomi tickets. Nothing booked.</p>
-        <div class="callout" style="margin-bottom:28px">Aoi Matsuri is May 15 every year. 2027 is a Saturday. Rain date is often the 16th, called the evening before. Paid viewing seats go on sale in the spring.</div>
+        <p class="prose soft" style="font-size:14px; margin:0 0 16px">Sumo is the reason. Two weeks is the trip. Tokyo May 6–12 (heya if posted, one weekday in chairs), then Kyoto for Aoi Matsuri on the 15th, then Osaka. A third city only if you both want it — pick from the list, do not stack. Individual Nozomi tickets. Nothing booked.</p>
+        <div class="callout" style="margin-bottom:20px">Aoi Matsuri is May 15 every year. 2027 is a Saturday. Rain date is often the 16th, called the evening before. Paid viewing seats go on sale in the spring.</div>
 
         <div class="itin">
           <section class="leg">
@@ -138,14 +128,15 @@
             </div>
           </section>
         </div>
-      </main>
+      </section>
     </div>
 
-    <footer class="foot eyebrow" style="margin-top:0">
+    <footer class="foot">
       <span>Draft · Nothing booked</span>
       <span>Miles — Aug 20, 2026</span>
       <span>ostroff.la</span>
     </footer>
-  </div>
+  </main>
+  <script src="/assets/app.js"></script>
 </body>
 </html>
