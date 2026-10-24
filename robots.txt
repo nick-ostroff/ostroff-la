@@ -1,5 +1,8 @@
 User-agent: *
 Allow: /
+Disallow: /today/
+Disallow: /approvals/
+Disallow: /mail/
 Disallow: /trips/
 Disallow: /tickets/
 Disallow: /unlock/

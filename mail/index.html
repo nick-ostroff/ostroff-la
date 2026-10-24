@@ -1,103 +1,46 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="robots" content="noindex, nofollow" />
-<title>Bots · Mail log — Ostroff.LA</title>
-<style>
-  :root {
-    --bg: #111214; --panel: #1a1c20; --panel2: #22252b; --line: #2c3038;
-    --text: #ececec; --muted: #9aa0aa; --accent: #d4a24a; --on: #5dba7a; --off: #8a8f98;
-  }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text);
-    font: 15px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; }
-  body { padding: 24px 18px 64px; max-width: 1180px; margin: 0 auto; }
-  a { color: var(--accent); text-decoration: none; }
-  .admin-bar {
-    display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center;
-    margin: -4px 0 18px; padding-bottom: 14px; border-bottom: 1px solid var(--line);
-    font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
-  }
-  .admin-bar a { color: var(--muted); }
-  .admin-bar a.on { color: var(--text); }
-  .admin-bar form { margin: 0 0 0 auto; }
-  .admin-bar button {
-    font: inherit; font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
-    min-height: 0; padding: 6px 10px; border-radius: 8px; color: var(--text);
-  }
-  .kicker { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
-  h1 { margin: 6px 0 4px; font-size: 28px; font-weight: 650; }
-  .sub { color: var(--muted); margin-bottom: 16px; }
-  .sample { display: inline-block; font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
-    color: var(--accent); border: 1px solid #5a4a28; background: #2a2418; padding: 2px 8px;
-    border-radius: 99px; margin-left: 8px; }
-  .stats { color: var(--muted); font-size: 14px; margin-bottom: 14px; }
-  .pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
-  .pills.secondary { margin-bottom: 16px; }
-  .pills button { font: inherit; font-size: 14px; font-weight: 600; border-radius: 999px;
-    padding: 10px 14px; min-height: 44px; border: 1px solid var(--line); background: var(--panel2); color: var(--muted); }
-  .pills button.on { color: var(--text); border-color: #4a5060; background: #2a2e36; }
-  .pills.inbox button.on { color: #1a1408; background: var(--accent); border-color: var(--accent); }
-  .wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
-  table { width: 100%; border-collapse: collapse; min-width: 960px; }
-  th, td { padding: 8px 10px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
-  th { position: sticky; top: 0; background: var(--panel2); font-size: 11px; letter-spacing: .08em;
-    text-transform: uppercase; color: var(--muted); font-weight: 650; }
-  th button {
-    font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit;
-    background: none; border: 0; padding: 0; cursor: pointer; display: inline-flex; gap: 6px; align-items: center;
-  }
-  th button:hover, th[aria-sort] button { color: var(--text); }
-  th[aria-sort="descending"] button::after { content: "↓"; color: var(--accent); }
-  th[aria-sort="ascending"] button::after { content: "↑"; color: var(--accent); }
-  tbody tr:last-child td { border-bottom: 0; }
-  tbody tr:hover td { background: #1e2127; }
-  .date { white-space: nowrap; color: var(--muted); font-variant-numeric: tabular-nums; }
-  .from { font-weight: 650; max-width: 16em; }
-  .subj { max-width: 22em; }
-  .labels { max-width: 18em; }
-  .label-list { display: flex; flex-wrap: wrap; gap: 4px; }
-  .gmail-label { color: var(--accent); font-size: 12px; letter-spacing: .02em; word-break: break-word; }
-  .rule-id { color: var(--muted); font-size: 11px; margin-top: 4px; word-break: break-word; }
-  .act { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
-  .act.keep { background: #1e3326; color: var(--on); }
-  .act.archive { background: #2a2a2a; color: var(--off); }
-  .note-cell { min-width: 16em; }
-  .note-form { display: flex; gap: 6px; align-items: center; }
-  .note-form input {
-    flex: 1; min-width: 0; min-height: 36px; font: inherit; color: var(--text);
-    background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px;
-  }
-  .note-form button {
-    font: inherit; font-size: 13px; font-weight: 600; min-height: 36px; padding: 6px 10px;
-    border-radius: 8px; color: #1a1408; background: var(--accent); border: 1px solid var(--accent); white-space: nowrap;
-  }
-  .note-form button:disabled { opacity: .6; }
-  .note-form .status { color: var(--muted); font-size: 12px; white-space: nowrap; }
-  .note-state { color: var(--muted); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; margin-top: 4px; }
-  .empty { padding: 18px 16px; color: var(--muted); }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Mail log — Ostroff.LA</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/app.css" />
+  <style>
+    .filters { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+    .stats { color: var(--color-pencil); font-size: 13px; margin: -16px 0 14px; }
+    .table { min-width: 960px; }
+    .table .date { white-space: nowrap; color: var(--color-pencil); font-variant-numeric: tabular-nums; }
+    .table .from { font-weight: 600; max-width: 16em; }
+    .table .subj { max-width: 24em; }
+    .table .labels { max-width: 18em; }
+    .label-list { display: flex; flex-wrap: wrap; gap: 4px; }
+    .rule-id { color: var(--color-graphite); font-size: 11px; margin-top: 4px; overflow-wrap: anywhere; }
+    .note-cell { min-width: 18em; }
+    .note-form { display: flex; gap: 6px; align-items: center; }
+    .note-form .status { color: var(--color-pencil); font-size: 12px; white-space: nowrap; }
+    .note-state { color: var(--color-graphite); font-size: 11px; margin-top: 4px; }
+  </style>
 </head>
-<body>
-  <div class="admin-bar">
-    <a href="/">Home</a>
-    <a href="/trips/">Trips</a>
-    <a href="/tickets/">Tickets</a>
-    <a href="/bots/">Briefing</a>
-    <a href="/bots/mail/" class="on">Mail log</a>
-    <a href="/bots/confirm/">Confirms</a>
-    <form method="post" action="/api/logout"><button type="submit">Sign out</button></form>
-  </div>
-  <div class="kicker"><a href="/bots/">Briefing</a> · Cliff<span class="sample" data-sample>Live</span></div>
-  <h1>Mail log</h1>
-  <p class="sub">What Cliff filed, and the Gmail labels he assigned. Leave a note if the filing should change. No bodies. Newest first — click a column to sort.</p>
-  <div class="stats" data-stats>Loading…</div>
-  <div class="pills inbox" id="inboxes" aria-label="Inbox"></div>
-  <div class="pills secondary" id="pills" aria-label="Keep or archive"></div>
-  <div id="list"></div>
-<script>
+<body class="app">
+  <aside class="side" data-sidebar></aside>
+  <main class="main wide" data-page-title="Mail log">
+    <h1 class="page-title">Mail log</h1>
+    <p class="page-sub">What Cliff filed, and the Gmail labels he assigned. Leave a note if the filing should change. No bodies. Newest first — click a column to sort.</p>
+    <div class="stats" data-stats>Loading…</div>
+    <div class="filters">
+      <div class="pills" id="inboxes" aria-label="Inbox"></div>
+      <div class="pills" id="pills" aria-label="Keep or archive"></div>
+    </div>
+    <div id="list"></div>
+  </main>
+
+  <script src="/assets/app.js"></script>
+  <script>
 let DATA = { rows: [], corrs: [], boxes: [], notes: [] };
 let INBOX = "ostroff";
 let ACTION = "all";
@@ -208,7 +151,7 @@ function visibleRows() {
 function pills() {
   const boxCounts = Object.fromEntries(INBOXES.map(b => [b.id, DATA.rows.filter(r => r.account === b.id).length]));
   document.getElementById("inboxes").innerHTML = INBOXES.map(b =>
-    `<button type="button" class="${INBOX===b.id?"on":""}" data-inbox="${b.id}">${b.label} ${boxCounts[b.id]}</button>`
+    `<button type="button" class="pill ${INBOX===b.id?"on":""}" data-inbox="${b.id}">${b.label} <span class="muted">${boxCounts[b.id]}</span></button>`
   ).join("");
 
   const rows = DATA.rows.filter(r => r.account === INBOX);
@@ -219,7 +162,7 @@ function pills() {
   };
   const keys = [["all","All"],["keep","Kept"],["archive","Archived"]];
   document.getElementById("pills").innerHTML = keys.map(([k,l]) =>
-    `<button type="button" class="${ACTION===k?"on":""}" data-f="${k}">${l} ${counts[k]}</button>`
+    `<button type="button" class="pill ${ACTION===k?"on":""}" data-f="${k}">${l} <span class="muted">${counts[k]}</span></button>`
   ).join("");
 }
 
@@ -255,7 +198,7 @@ function render() {
     el.innerHTML = '<div class="empty">Nothing filed in this view.</div>';
     return;
   }
-  el.innerHTML = `<div class="wrap"><table>
+  el.innerHTML = `<div class="table-wrap"><table class="table">
     <thead>${headerRow()}</thead>
     <tbody>${shown.map(rowHtml).join("")}</tbody>
   </table></div>`;
@@ -268,8 +211,8 @@ function splitLabels(raw) {
 function labelCell(r) {
   const labels = splitLabels(r.labels);
   const primary = labels.length
-    ? `<div class="label-list">${labels.map(l => `<span class="gmail-label">${esc(l)}</span>`).join("")}</div>`
-    : `<div class="gmail-label">—</div>`;
+    ? `<div class="label-list">${labels.map(l => `<span class="badge info">${esc(l)}</span>`).join("")}</div>`
+    : `<div class="muted">—</div>`;
   const rule = r.rule ? `<div class="rule-id">${esc(r.rule)}</div>` : "";
   return primary + rule;
 }
@@ -282,16 +225,17 @@ function rowHtml(r) {
     ? `<div class="note-state">${esc(latestObj.status)}</div>`
     : "";
   const draft = Object.prototype.hasOwnProperty.call(DRAFTS, r.key) ? DRAFTS[r.key] : latest;
+  const act = r.action === "keep" ? "badge ok" : "badge";
   return `<tr data-key="${esc(r.key || "")}">
     <td class="date">${esc(fmtDate(r.date))}</td>
     <td class="from">${esc(r.from)}</td>
     <td class="subj">${esc(r.subject) || "(no subject)"}</td>
-    <td><span class="act ${esc(r.action)}">${esc(r.action)}</span></td>
+    <td><span class="${act}">${esc(r.action)}</span></td>
     <td class="labels"${r.rule ? ` title="Rule ${esc(r.rule)}"` : ""}>${labelCell(r)}</td>
     <td class="note-cell">
       <form class="note-form" data-key="${esc(r.key || "")}">
-        <input name="note" type="text" maxlength="4000" value="${esc(draft)}" placeholder="Filing change for Cliff…" />
-        <button type="submit">Save</button>
+        <input class="input sm" name="note" type="text" maxlength="4000" value="${esc(draft)}" placeholder="Filing change for Cliff…" />
+        <button type="submit" class="btn">Save</button>
         <span class="status" aria-live="polite"></span>
       </form>
       ${noteState}
@@ -400,6 +344,6 @@ function saveNote(form) {
     });
 }
 bootMail();
-</script>
+  </script>
 </body>
 </html>

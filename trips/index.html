@@ -8,71 +8,56 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..800;1,6..72,400..800&family=Archivo:wght@400..700&family=Libre+Franklin:wght@300..700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/site.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/app.css" />
 </head>
-<body>
-  <div class="page section-trips">
-    <div class="topline eyebrow">
-      <span>Admin</span>
-      <span data-today></span>
-      <span style="color:var(--green)">ostroff.la</span>
-    </div>
+<body class="app trips">
+  <aside class="side" data-sidebar></aside>
+  <main class="main" data-page-title="Trips">
+    <h1 class="page-title">Trips</h1>
+    <p class="page-sub">Family travel — drafts, ideas, nothing booked. <span data-today></span></p>
 
-    <header class="masthead compact">
-      <h1 class="title">Trips<span class="dot">.</span></h1>
-      <p class="tagline">Family travel — drafts, ideas, nothing booked.</p>
-    </header>
-
-    <nav class="nav" aria-label="Admin">
-      <a href="/">Home</a>
-      <a href="/trips/" aria-current="page">Trips</a>
-      <a href="/tickets/">Tickets</a>
-      <a href="/bots/">Bots</a>
-      <form method="post" action="/api/logout" class="signout"><button type="submit">Sign out</button></form>
-    </nav>
-
-    <main class="people" style="border-bottom:0; padding:36px 0">
-      <article>
+    <div class="cards-2">
+      <article class="card">
         <div class="person-head">
           <img class="portrait sm" src="/images/nick.png" alt="" width="56" height="56" />
           <div>
-            <h2 class="person-name" style="font-size:27px">Dad &amp; Nick</h2>
-            <div class="kicker">Sports Trips · Tokyo May 2027</div>
+            <h2 class="person-name">Dad &amp; Nick</h2>
+            <div class="kicker">Sports trips · Tokyo May 2027</div>
           </div>
         </div>
-        <p class="prose" style="font-size:15.5px">Japan in May 2027: one basho day, then two weeks through the country. Other sports ideas by month. Nothing booked.</p>
+        <p class="prose soft" style="font-size:14px; margin:0">Japan in May 2027: one basho day, then two weeks through the country. Other sports ideas by month. Nothing booked.</p>
         <div class="rows">
           <a href="/trips/japan/"><div><span class="t">Japan</span><span class="sub">May 2027 · Sumo + 2 weeks</span></div><span class="go">Open →</span></a>
           <div><div><span class="t">Ideas by month</span><span class="sub">Other sports trips</span></div><span class="go muted">Soon</span></div>
         </div>
       </article>
-      <div class="vr" aria-hidden="true"></div>
-      <article>
+      <article class="card">
         <div class="person-head">
           <img class="portrait sm" src="/images/nick.png" alt="" width="56" height="56" />
           <div>
-            <h2 class="person-name" style="font-size:27px">Natalie &amp; Nick</h2>
-            <div class="kicker">Short Trip With Mom</div>
+            <h2 class="person-name">Natalie &amp; Nick</h2>
+            <div class="kicker">Short trip with Mom</div>
           </div>
         </div>
-        <p class="prose" style="font-size:15.5px">San Diego–Mexico cruise is the live idea. Hawaii, Africa, and a longer Caribbean are still notes. Nothing reserved.</p>
+        <p class="prose soft" style="font-size:14px; margin:0">San Diego–Mexico cruise is the live idea. Hawaii, Africa, and a longer Caribbean are still notes. Nothing reserved.</p>
         <div class="rows">
           <div><div><span class="t">SD–Mexico cruise</span><span class="sub">Serenade of the Seas</span></div><span class="go muted">Soon</span></div>
           <div><div><span class="t">Other ideas</span><span class="sub">Hawaii · Africa · Caribbean</span></div><span class="go muted">Soon</span></div>
         </div>
       </article>
-    </main>
+    </div>
 
-    <footer class="foot eyebrow" style="margin-top:0">
+    <footer class="foot">
       <span>Draft · Nothing booked</span>
       <span>Miles — Aug 20, 2026</span>
       <span>ostroff.la</span>
     </footer>
-  </div>
+  </main>
+  <script src="/assets/app.js"></script>
   <script>
     const t = document.querySelector('[data-today]');
-    if (t) t.textContent = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).format(new Date());
+    if (t) t.textContent = '· ' + new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).format(new Date());
   </script>
 </body>
 </html>

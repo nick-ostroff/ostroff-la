@@ -102,9 +102,7 @@
         nav.className = 'nav';
         nav.setAttribute('aria-label', 'Admin');
         nav.innerHTML = `<a href="/" aria-current="page">Home</a>
-          <a href="/trips/">Trips</a>
-          <a href="/tickets/">Tickets</a>
-          <a href="/bots/">Bots</a>
+          <a href="/today/">Portal →</a>
           <form method="post" action="/api/logout" class="signout"><button type="submit">Sign out</button></form>`;
         document.querySelector('.masthead')?.after(nav);
       } catch {}

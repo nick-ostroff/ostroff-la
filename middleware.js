@@ -1,6 +1,7 @@
 // Vercel Routing Middleware
 // - Existing subdomains 301 onto ostroff.la (tickets.ostroff.la is kept; do not delete).
-// - Private paths: /trips, /tickets, /bots, /morning + mail + Tesla APIs
+// - Old Bots paths (/bots, /morning, /mail.html) 301 onto the portal (/today, /approvals, /mail).
+// - Private paths: /today, /approvals, /mail, /projects, /tickets, /trips + mail/confirm/Tesla/projects APIs
 // - GET/POST/PATCH /api/mail-notes also allows Authorization: Bearer MAIL_NOTES_FEED_TOKEN
 //   (handler: Bearer may ACK; create still needs an admin session)
 // - GET/POST/PATCH /api/confirmations also allows the same mail-notes feed Bearer
@@ -80,12 +81,24 @@ function isPrivatePath(path) {
     path === '/api/confirmations' ||
     path === '/api/tesla-morning' ||
     path === '/api/projects' ||
+    path === '/today' || path.startsWith('/today/') ||
+    path === '/approvals' || path.startsWith('/approvals/') ||
+    path === '/mail' || path.startsWith('/mail/') ||
     path === '/projects' || path.startsWith('/projects/') ||
     path === '/trips' || path.startsWith('/trips/') ||
-    path === '/tickets' || path.startsWith('/tickets/') ||
-    path === '/bots' || path.startsWith('/bots/') ||
-    path === '/morning' || path.startsWith('/morning/')
+    path === '/tickets' || path.startsWith('/tickets/')
   );
+}
+
+// Old Bots/Morning paths → portal paths. Returns null when the path is not a legacy one.
+function legacyRedirect(path) {
+  if (path === '/mail.html') return '/mail/';
+  if (path === '/bots/mail' || path.startsWith('/bots/mail/')) return '/mail/';
+  if (path === '/bots/confirm' || path.startsWith('/bots/confirm/')) return '/approvals/';
+  if (path === '/bots' || path.startsWith('/bots/')) return '/today/';
+  if (path === '/morning/mail.html' || path === '/morning/mail') return '/mail/';
+  if (path === '/morning' || path.startsWith('/morning/')) return '/today/';
+  return null;
 }
 
 function deny(req, url, path) {
@@ -105,14 +118,14 @@ function deny(req, url, path) {
 
 function subdomainTarget(host, path) {
   if (host === 'grok.ostroff.la') {
-    if (path === '/mail' || path === '/mail.html' || path === '/morning/mail.html' || path === '/morning/mail') {
-      return '/bots/mail/';
+    if (path === '/mail' || path === '/mail/' || path === '/mail.html' || path === '/morning/mail.html' || path === '/morning/mail') {
+      return '/mail/';
     }
     if (path.startsWith('/api/')) return path;
-    if (path === '/' || path === '/morning' || path === '/morning/') return '/bots/';
-    if (path.startsWith('/morning/')) return `/bots/${path.slice('/morning/'.length)}`;
-    if (path.startsWith('/bots')) return path;
-    return '/bots/';
+    const legacy = legacyRedirect(path);
+    if (legacy) return legacy;
+    if (isPrivatePath(path)) return path;
+    return '/today/';
   }
   if (host === 'tickets.ostroff.la') {
     if (path === '/' || path === '') return '/tickets/';
@@ -133,9 +146,8 @@ export default async function middleware(req) {
   const dest = subdomainTarget(hostOf(req), path);
   if (dest) return Response.redirect(apex(dest, url.search), 301);
 
-  if (path === '/mail' || path === '/mail.html') {
-    return Response.redirect(new URL('/bots/mail/', url.origin).toString(), 301);
-  }
+  const legacy = legacyRedirect(path);
+  if (legacy) return Response.redirect(new URL(legacy, url.origin).toString(), 301);
 
   if (!isPrivatePath(path)) return;
 
