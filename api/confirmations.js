@@ -5,7 +5,7 @@
 // PATCH /api/confirmations — approve/deny (Nick session or Cap Bearer)
 //   or consume (Cliff Bearer). Cliff must never auto-approve.
 // Persist: private @vercel/blob (CONFIRMATIONS_BLOB or bot-confirmations.json).
-// Confirm channel is Cap chat / AgentMail Cap / /bots/confirm/ — not Gmail.
+// Confirm channel is Cap chat / AgentMail Cap / /approvals/ — not Gmail.
 // Curl (after deploy; token is the Vercel env, never commit it):
 //   curl -sS -X POST -H "Authorization: Bearer $MAIL_NOTES_FEED_TOKEN" \
 //     -H "Content-Type: application/json" \
