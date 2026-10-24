@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Mail log — Ostroff.LA</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/app.css" />
+  <style>
+    .filters { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+    .stats { color: var(--color-pencil); font-size: 13px; margin: -16px 0 14px; }
+    .table { min-width: 960px; }
+    .table .date { white-space: nowrap; color: var(--color-pencil); font-variant-numeric: tabular-nums; }
+    .table .from { font-weight: 600; max-width: 16em; }
+    .table .subj { max-width: 24em; }
+    .table .labels { max-width: 18em; }
+    .label-list { display: flex; flex-wrap: wrap; gap: 4px; }
+    .rule-id { color: var(--color-graphite); font-size: 11px; margin-top: 4px; overflow-wrap: anywhere; }
+    .note-cell { min-width: 18em; }
+    .note-form { display: flex; gap: 6px; align-items: center; }
+    .note-form .status { color: var(--color-pencil); font-size: 12px; white-space: nowrap; }
+    .note-state { color: var(--color-graphite); font-size: 11px; margin-top: 4px; }
+  </style>
+</head>
+<body class="app">
+  <aside class="side" data-sidebar></aside>
+  <main class="main wide" data-page-title="Mail log">
+    <h1 class="page-title">Mail log</h1>
+    <p class="page-sub">What Cliff filed, and the Gmail labels he assigned. Leave a note if the filing should change. No bodies. Newest first — click a column to sort.</p>
+    <div class="stats" data-stats>Loading…</div>
+    <div class="filters">
+      <div class="pills" id="inboxes" aria-label="Inbox"></div>
+      <div class="pills" id="pills" aria-label="Keep or archive"></div>
+    </div>
+    <div id="list"></div>
+  </main>
+
+  <script src="/assets/app.js"></script>
+  <script>
+let DATA = { rows: [], corrs: [], boxes: [], notes: [] };
+let INBOX = "ostroff";
+let ACTION = "all";
+let SORT = { col: "date", dir: "desc" };
+const DRAFTS = {};
+
+const INBOXES = [
+  { id: "ostroff", label: "ostroff.la" },
+  { id: "pixelocity", label: "Pixelocity" }
+];
+const COLS = [
+  ["date", "Date"],
+  ["from", "From"],
+  ["subject", "Subject"],
+  ["action", "Keep / archive"],
+  ["labels", "Labels"],
+  ["note", "Note"]
+];
+
+function bootMail() {
+  fetch("/api/morning-mail", { credentials: "include", cache: "no-store" })
+    .then(r => { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+    .then(d => {
+      DATA = d;
+      DATA.rows = DATA.rows || [];
+      DATA.corrs = DATA.corrs || [];
+      DATA.notes = DATA.notes || [];
+      if (!DATA.rows.some(r => r.account === INBOX) && DATA.rows.some(r => r.account === "pixelocity")) {
+        INBOX = "pixelocity";
+      }
+      render();
+    })
+    .catch(() => {
+      const el = document.getElementById("list");
+      if (el) el.innerHTML = '<div class="empty">Mail log is not loaded yet.</div>';
+      document.querySelector("[data-stats]").textContent = "Mail log is not loaded yet.";
+    });
+}
+
+function arrivalMs(r) {
+  const t = Date.parse(r && r.date ? r.date : "");
+  return Number.isNaN(t) ? null : t;
+}
+
+function rowNotes(r) {
+  const k = r.key || [r.account || "", r.date || "", r.from || "", r.subject || ""].join("\t");
+  const stored = (r.notes && r.notes.length)
+    ? r.notes
+    : (DATA.notes || []).filter(n => (n.key || "") === k);
+  const corrs = (DATA.corrs || []).filter(c =>
+    c.from === r.from && c.subject === r.subject &&
+    (!c.account || !r.account || c.account === r.account)
+  ).map(c => ({
+    note: c.note || [c.cliff && `Cliff ${c.cliff}`, c.nick && `Nick ${c.nick}`].filter(Boolean).join(" → "),
+    by: "nick",
+    at: ""
+  }));
+  const seen = new Set();
+  const out = [];
+  for (const n of corrs.concat(stored)) {
+    const text = String(n.note || "").trim();
+    if (!text || seen.has(text)) continue;
+    seen.add(text);
+    out.push(n);
+  }
+  return out;
+}
+
+function latestNote(r) {
+  const notes = rowNotes(r);
+  return notes.length ? notes[notes.length - 1].note : "";
+}
+
+function sortRows(rows) {
+  const { col, dir } = SORT;
+  const mul = dir === "asc" ? 1 : -1;
+  return rows.slice().sort((a, b) => {
+    if (col === "date") {
+      const da = arrivalMs(a);
+      const db = arrivalMs(b);
+      if (da == null && db == null) return 0;
+      if (da == null) return 1;
+      if (db == null) return -1;
+      if (da !== db) return (da - db) * mul;
+    } else {
+      const va = col === "note" ? latestNote(a) : String(a[col] || "");
+      const vb = col === "note" ? latestNote(b) : String(b[col] || "");
+      const c = va.localeCompare(vb, undefined, { sensitivity: "base" });
+      if (c) return c * mul;
+      const da = arrivalMs(a);
+      const db = arrivalMs(b);
+      if (da != null && db != null && da !== db) return db - da;
+    }
+    return String(a.subject || "").localeCompare(String(b.subject || ""));
+  });
+}
+
+function inboxRows() {
+  return sortRows(DATA.rows.filter(r => r.account === INBOX));
+}
+
+function visibleRows() {
+  const rows = inboxRows();
+  if (ACTION === "keep" || ACTION === "archive") return rows.filter(r => r.action === ACTION);
+  return rows;
+}
+
+function pills() {
+  const boxCounts = Object.fromEntries(INBOXES.map(b => [b.id, DATA.rows.filter(r => r.account === b.id).length]));
+  document.getElementById("inboxes").innerHTML = INBOXES.map(b =>
+    `<button type="button" class="pill ${INBOX===b.id?"on":""}" data-inbox="${b.id}">${b.label} <span class="muted">${boxCounts[b.id]}</span></button>`
+  ).join("");
+
+  const rows = DATA.rows.filter(r => r.account === INBOX);
+  const counts = {
+    all: rows.length,
+    keep: rows.filter(r => r.action === "keep").length,
+    archive: rows.filter(r => r.action === "archive").length
+  };
+  const keys = [["all","All"],["keep","Kept"],["archive","Archived"]];
+  document.getElementById("pills").innerHTML = keys.map(([k,l]) =>
+    `<button type="button" class="pill ${ACTION===k?"on":""}" data-f="${k}">${l} <span class="muted">${counts[k]}</span></button>`
+  ).join("");
+}
+
+function fmtDate(raw) {
+  const t = Date.parse(raw || "");
+  if (Number.isNaN(t)) return raw || "";
+  return new Date(t).toLocaleString(undefined, {
+    weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit"
+  });
+}
+
+function headerRow() {
+  return `<tr>${COLS.map(([id, label]) => {
+    const sort = SORT.col === id ? (SORT.dir === "asc" ? "ascending" : "descending") : null;
+    return `<th scope="col"${sort ? ` aria-sort="${sort}"` : ""}><button type="button" data-sort="${id}">${label}</button></th>`;
+  }).join("")}</tr>`;
+}
+
+function render() {
+  pills();
+  const inbox = DATA.rows.filter(r => r.account === INBOX);
+  const keep = inbox.filter(r => r.action === "keep").length;
+  const archive = inbox.filter(r => r.action === "archive").length;
+  const label = (INBOXES.find(b => b.id === INBOX) || {}).label || INBOX;
+  const newest = inbox.slice().sort((a, b) => (arrivalMs(b) || 0) - (arrivalMs(a) || 0))[0];
+  document.querySelector("[data-stats]").textContent =
+    `${inbox.length} filed · ${keep} kept · ${archive} archived · ${label}` +
+    (newest && newest.date ? ` · newest ${esc(fmtDate(newest.date))}` : "");
+
+  const shown = visibleRows();
+  const el = document.getElementById("list");
+  if (!shown.length) {
+    el.innerHTML = '<div class="empty">Nothing filed in this view.</div>';
+    return;
+  }
+  el.innerHTML = `<div class="table-wrap"><table class="table">
+    <thead>${headerRow()}</thead>
+    <tbody>${shown.map(rowHtml).join("")}</tbody>
+  </table></div>`;
+}
+
+function splitLabels(raw) {
+  return String(raw || "").split("|").map(s => s.trim()).filter(Boolean);
+}
+
+function labelCell(r) {
+  const labels = splitLabels(r.labels);
+  const primary = labels.length
+    ? `<div class="label-list">${labels.map(l => `<span class="badge info">${esc(l)}</span>`).join("")}</div>`
+    : `<div class="muted">—</div>`;
+  const rule = r.rule ? `<div class="rule-id">${esc(r.rule)}</div>` : "";
+  return primary + rule;
+}
+
+function rowHtml(r) {
+  const notes = rowNotes(r);
+  const latestObj = notes.length ? notes[notes.length - 1] : null;
+  const latest = latestObj ? latestObj.note : "";
+  const noteState = latestObj && latestObj.status && latestObj.status !== "open"
+    ? `<div class="note-state">${esc(latestObj.status)}</div>`
+    : "";
+  const draft = Object.prototype.hasOwnProperty.call(DRAFTS, r.key) ? DRAFTS[r.key] : latest;
+  const act = r.action === "keep" ? "badge ok" : "badge";
+  return `<tr data-key="${esc(r.key || "")}">
+    <td class="date">${esc(fmtDate(r.date))}</td>
+    <td class="from">${esc(r.from)}</td>
+    <td class="subj">${esc(r.subject) || "(no subject)"}</td>
+    <td><span class="${act}">${esc(r.action)}</span></td>
+    <td class="labels"${r.rule ? ` title="Rule ${esc(r.rule)}"` : ""}>${labelCell(r)}</td>
+    <td class="note-cell">
+      <form class="note-form" data-key="${esc(r.key || "")}">
+        <input class="input sm" name="note" type="text" maxlength="4000" value="${esc(draft)}" placeholder="Filing change for Cliff…" />
+        <button type="submit" class="btn">Save</button>
+        <span class="status" aria-live="polite"></span>
+      </form>
+      ${noteState}
+    </td>
+  </tr>`;
+}
+
+function esc(s) {
+  return String(s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+}
+
+function rememberDrafts() {
+  document.querySelectorAll("form.note-form").forEach(form => {
+    const input = form.querySelector("input[name=note]");
+    if (input) DRAFTS[form.dataset.key] = input.value;
+  });
+}
+
+document.getElementById("inboxes").addEventListener("click", e => {
+  const b = e.target.closest("button[data-inbox]");
+  if (!b) return;
+  rememberDrafts();
+  INBOX = b.dataset.inbox;
+  render();
+});
+document.getElementById("pills").addEventListener("click", e => {
+  const b = e.target.closest("button[data-f]");
+  if (!b) return;
+  rememberDrafts();
+  ACTION = b.dataset.f;
+  render();
+});
+document.getElementById("list").addEventListener("click", e => {
+  const b = e.target.closest("button[data-sort]");
+  if (!b) return;
+  rememberDrafts();
+  const col = b.dataset.sort;
+  if (SORT.col === col) SORT.dir = SORT.dir === "asc" ? "desc" : "asc";
+  else {
+    SORT.col = col;
+    SORT.dir = col === "date" ? "desc" : "asc";
+  }
+  render();
+});
+document.getElementById("list").addEventListener("submit", e => {
+  const form = e.target.closest("form.note-form");
+  if (!form) return;
+  e.preventDefault();
+  saveNote(form);
+});
+
+function saveNote(form) {
+  const key = form.dataset.key;
+  const row = DATA.rows.find(r => (r.key || "") === key);
+  if (!row) return;
+  const input = form.querySelector("input[name=note]");
+  const status = form.querySelector(".status");
+  const button = form.querySelector("button");
+  const note = String(input.value || "").trim();
+  if (!note) {
+    if (status) status.textContent = "Type a note first.";
+    return;
+  }
+  if (note === latestNote(row)) {
+    if (status) status.textContent = "Saved.";
+    return;
+  }
+  if (button) button.disabled = true;
+  if (status) status.textContent = "Saving…";
+  fetch("/api/mail-notes", {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({
+      account: row.account,
+      from: row.from,
+      subject: row.subject,
+      date: row.date,
+      action: row.action,
+      rule: row.rule,
+      labels: row.labels,
+      key: row.key,
+      note
+    })
+  })
+    .then(r => r.json().then(d => ({ ok: r.ok, d })))
+    .then(({ ok, d }) => {
+      if (!ok) throw new Error(d.error || "save failed");
+      DATA.notes = d.notes || DATA.notes || [];
+      DATA.rows = DATA.rows.map(r => r.key === key
+        ? { ...r, notes: (r.notes || []).concat([d.note]) }
+        : r);
+      DRAFTS[key] = note;
+      rememberDrafts();
+      render();
+      const next = [...document.querySelectorAll("form.note-form")]
+        .find(f => f.dataset.key === key);
+      if (next) {
+        const s = next.querySelector(".status");
+        if (s) s.textContent = "Saved.";
+      }
+    })
+    .catch(err => {
+      if (button) button.disabled = false;
+      if (status) status.textContent = err.message || "Could not save.";
+    });
+}
+bootMail();
+  </script>
+</body>
+</html>
