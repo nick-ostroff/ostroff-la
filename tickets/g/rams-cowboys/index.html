@@ -8,28 +8,20 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..800;1,6..72,400..800&family=Archivo:wght@400..700&family=Libre+Franklin:wght@300..700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/site.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/app.css" />
 </head>
-<body>
-  <div class="page section-tickets tabular" style="padding-top:36px">
-    <div class="bar">
-      <a class="brand" href="/tickets/">Tickets<span class="dot">.</span></a>
-      <nav class="nav" aria-label="Admin">
-        <a href="/">Home</a>
-        <a href="/trips/">Trips</a>
-        <a href="/tickets/" aria-current="page">Tickets</a>
-        <a href="/bots/">Bots</a>
-      </nav>
-      <span class="eyebrow">ostroff.la</span>
-    </div>
+<body class="app tickets">
+  <aside class="side" data-sidebar></aside>
+  <main class="main wide tabular" data-page-title="Tickets">
     <div id="game-root"></div>
-    <footer class="foot eyebrow" style="margin-top:0">
+    <footer class="foot">
       <span>Research, not checkout</span>
       <span>Ask as of 2026-08-26 ~9:15pm PT</span>
       <span>ostroff.la</span>
     </footer>
-  </div>
+  </main>
+  <script src="/assets/app.js"></script>
   <script src="/tickets/sales.js"></script>
   <script src="/tickets/data.js"></script>
   <script src="/tickets/game.js"></script>

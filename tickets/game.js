@@ -97,7 +97,7 @@ window.TicketGame = {
       <header class="hero">
         <div>
           <div class="hero-marks">${this.mark(team.name)}${this.mark(game.opponent)}</div>
-          <h1 style="font-size:clamp(36px, 6vw, 56px)">${title}</h1>
+          <h1>${title}</h1>
           <div class="kicker">${kicker}</div>
           <div class="note">${seats}</div>
         </div>

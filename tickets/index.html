@@ -8,29 +8,14 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..800;1,6..72,400..800&family=Archivo:wght@400..700&family=Libre+Franklin:wght@300..700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/site.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/app.css" />
 </head>
-<body>
-  <div class="page section-tickets">
-    <div class="topline eyebrow">
-      <span>Admin</span>
-      <span data-today></span>
-      <span style="color:var(--gold)">ostroff.la</span>
-    </div>
-
-    <header class="masthead compact">
-      <h1 class="title">Tickets<span class="dot">.</span></h1>
-      <p class="tagline">Paid = invoice pair. Ask = StubHub section × 2. Opportunity = ask − paid. Fees extra.</p>
-    </header>
-
-    <nav class="nav" aria-label="Admin">
-      <a href="/">Home</a>
-      <a href="/trips/">Trips</a>
-      <a href="/tickets/" aria-current="page">Tickets</a>
-      <a href="/bots/">Bots</a>
-      <form method="post" action="/api/logout" class="signout"><button type="submit">Sign out</button></form>
-    </nav>
+<body class="app tickets">
+  <aside class="side" data-sidebar></aside>
+  <main class="main wide tabular" data-page-title="Tickets">
+    <h1 class="page-title">Tickets</h1>
+    <p class="page-sub">Paid = invoice pair. Ask = StubHub section × 2. Opportunity = ask − paid. Fees extra. <span data-today></span></p>
 
     <div class="season">
       <div>
@@ -185,15 +170,16 @@
       </div>
     </div>
 
-    <footer class="foot eyebrow" style="margin-top:32px">
+    <footer class="foot">
       <span>Research, not checkout</span>
       <span>Ask as of 2026-08-26 ~9:15pm PT</span>
       <span>ostroff.la</span>
     </footer>
-  </div>
+  </main>
+  <script src="/assets/app.js"></script>
   <script>
     const t = document.querySelector('[data-today]');
-    if (t) t.textContent = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).format(new Date());
+    if (t) t.textContent = '· ' + new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).format(new Date());
 
     const copy = {
       all: {
