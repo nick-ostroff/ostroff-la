@@ -92,8 +92,9 @@ img { max-width: 100%; }
 .side .foot a, .side .foot button { color: var(--color-pencil); background: none; border: 0; padding: 0; cursor: pointer; font-size: 12px; }
 .side .foot a:hover, .side .foot button:hover { color: var(--color-deep-ember); text-decoration: none; }
 
-/* Mobile top bar (hidden on desktop) */
+/* Mobile top bar + scrim (hidden on desktop) */
 .topbar { display: none; }
+.scrim { display: none; }
 
 /* ---------- Main ---------- */
 .main { padding: 36px 48px 64px; min-width: 0; max-width: calc(var(--measure) + 96px); }

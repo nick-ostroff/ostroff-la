@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Today — Ostroff.LA</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/app.css" />
+</head>
+<body class="app">
+  <aside class="side" data-sidebar></aside>
+  <main class="main" data-page-title="Today">
+    <h1 class="page-title">Today</h1>
+    <p class="page-sub" data-sub>&nbsp;</p>
+
+    <div class="tiles">
+      <div class="tile" data-tile="tesla"><div class="k" data-k>Otto · Tesla</div><div class="v" data-v>—</div></div>
+      <div class="tile" data-tile="mail"><div class="k" data-k>Mail filed</div><div class="v" data-v>—</div></div>
+      <div class="tile" data-tile="needs"><div class="k" data-k>Needs you</div><div class="v" data-v>—</div></div>
+    </div>
+
+    <section data-sect="needs" hidden>
+      <div class="sect">Needs you <span class="n" data-n></span></div>
+      <p class="err" data-err hidden></p>
+      <div data-list></div>
+    </section>
+
+    <section data-sect="mail" hidden>
+      <div class="sect">Mail · kept for you <span class="n" data-n></span></div>
+      <div data-list></div>
+    </section>
+
+    <section data-sect="projects" hidden>
+      <div class="sect">Projects · needs a decision <span class="n" data-n></span></div>
+      <div data-list></div>
+    </section>
+
+    <p class="empty" data-all-quiet hidden>Nothing needs you right now.</p>
+  </main>
+
+  <script src="/assets/app.js"></script>
+  <script>
+  (() => {
+    const TZ = 'America/Los_Angeles';
+    const $ = (s, el = document) => el.querySelector(s);
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const state = { needs: null, mail: null, projects: null };
+
+    function fmtToday() {
+      return new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'short', day: 'numeric', timeZone: TZ }).format(new Date());
+    }
+    function todayKeyPT() {
+      return new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: TZ }).format(new Date());
+    }
+    function isTodayPT(dateStr) {
+      const d = new Date(dateStr);
+      if (Number.isNaN(d.getTime())) return false;
+      return new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: TZ }).format(d) === todayKeyPT();
+    }
+    function expiryLabel(iso) {
+      if (!iso) return 'no expiry';
+      const t = new Date(iso).getTime();
+      if (Number.isNaN(t)) return 'no expiry';
+      const ms = t - Date.now();
+      if (ms <= 0) return 'expired';
+      const m = Math.round(ms / 60000);
+      if (m < 60) return `expires in ${m}m`;
+      const h = Math.round(m / 60);
+      if (h < 48) return `expires in ${h}h`;
+      return `expires in ${Math.round(h / 24)}d`;
+    }
+    const KIND = { send_email: 'send an email', send: 'send an email', todoist_create: 'add a Todoist task', todoist: 'add a Todoist task', payment: 'make a payment', pay: 'make a payment' };
+    const kindVerb = (c) => KIND[c.kind || c.action] || `confirm "${c.kind || c.action || 'action'}"`;
+    const kindShort = (c) => ({ send_email: 'Send', send: 'Send', todoist_create: 'Todoist', todoist: 'Todoist', payment: 'Pay', pay: 'Pay' }[c.kind || c.action] || (c.kind || c.action || 'Confirm'));
+    function setSub(text) { $('[data-sub]').textContent = text; }
+    function tile(name, v, k) {
+      const t = $(`[data-tile="${name}"]`);
+      $('[data-v]', t).innerHTML = v;
+      if (k) $('[data-k]', t).textContent = k;
+    }
+    function section(name, rows, html) {
+      const s = $(`[data-sect="${name}"]`);
+      state[name] = rows.length;
+      s.hidden = rows.length === 0;
+      $('[data-n]', s).textContent = rows.length ? String(rows.length) : '';
+      $('[data-list]', s).innerHTML = html;
+      const vals = Object.values(state);
+      $('[data-all-quiet]').hidden = !(vals.every((v) => v !== null) && vals.every((v) => v === 0));
+    }
+    async function getJson(url) {
+      const r = await fetch(url, { credentials: 'same-origin', cache: 'no-store' });
+      if (r.status === 401) { location.href = '/login/?next=' + encodeURIComponent(location.pathname); throw new Error('401'); }
+      if (!r.ok) throw new Error(String(r.status));
+      return r.json();
+    }
+
+    // Otto / Tesla tile
+    async function loadTesla() {
+      try {
+        const d = await getJson('/api/tesla-morning');
+        if (!d || d.empty || (d.battery_level_pct == null && !d.line)) { tile('tesla', 'No snapshot yet'); return; }
+        const bits = [];
+        if (d.battery_range_mi != null) bits.push(`${d.battery_range_mi} mi`);
+        if (d.charge_limit_soc != null) bits.push(`limit ${d.charge_limit_soc}%`);
+        if (d.charging_state && d.charging_state !== 'Disconnected') bits.push(String(d.charging_state).toLowerCase());
+        const main = d.battery_level_pct != null ? `${d.battery_level_pct}%` : esc(d.line);
+        tile('tesla', `${esc(main)}${bits.length ? `<small>${esc(bits.join(' · '))}</small>` : ''}`, `Otto · ${d.display_name || 'Tesla'}`);
+        if (d.as_of_pt) setSub(`${fmtToday()} · briefing updated ${d.as_of_pt}`);
+      } catch { tile('tesla', '—'); }
+    }
+
+    // Mail tile + kept rows
+    async function loadMail() {
+      try {
+        const d = await getJson('/api/morning-mail');
+        const rows = d.rows || [];
+        const today = rows.filter((r) => isTodayPT(r.date));
+        const set = today.length ? today : rows;
+        const keep = set.filter((r) => r.action === 'keep').length;
+        const archive = set.filter((r) => r.action === 'archive').length;
+        tile('mail', `${set.length}<small>${archive} archived · ${keep} kept</small>`, today.length ? 'Mail filed overnight' : 'Mail filed');
+        const kept = rows.filter((r) => r.action === 'keep')
+          .sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+        section('mail', kept, kept.map((r) => {
+          const acct = r.account === 'pixelocity' ? '<span class="badge info">Pixelocity</span>' : '<span class="badge ok">ostroff.la</span>';
+          const labels = String(r.labels || '').split('|').map((s) => s.trim()).filter(Boolean).slice(0, 2).map(esc).join(' · ');
+          return `<div class="row"><div class="chk"></div><div class="body">
+            <div class="t">${esc(r.from || '')} — ${esc(r.subject || '')}</div>
+            <div class="m">${acct}${labels ? `<span>${labels}</span>` : ''}<a href="/mail/">add note</a></div>
+          </div></div>`;
+        }).join(''));
+      } catch { tile('mail', '—'); section('mail', [], ''); }
+    }
+
+    // Pending confirmations
+    async function loadNeeds() {
+      const s = $('[data-sect="needs"]');
+      try {
+        const d = await getJson('/api/confirmations?status=pending');
+        const items = (d.confirmations || []).filter((c) => c.status === 'pending');
+        tile('needs', `${items.length}<small>${items.length === 1 ? 'approval waiting' : 'approvals waiting'}</small>`);
+        section('needs', items, items.map((c, i) => `<div class="row" data-id="${esc(c.id)}">
+          <div class="chk p1"></div>
+          <div class="body">
+            <div class="t"><span style="text-transform:capitalize">${esc(c.requested_by || 'cliff')}</span> wants to ${esc(kindVerb(c))}: ${esc(c.summary || '')}</div>
+            <div class="m"><span class="badge wait">${esc(kindShort(c))} · ${esc(expiryLabel(c.expires_at))}</span>${c.payload && Object.keys(c.payload).length ? '<a href="/approvals/">details</a>' : ''}</div>
+          </div>
+          <div class="act"><button type="button" class="btn ghost" data-act="denied">Deny</button><button type="button" class="btn${i === 0 ? ' primary' : ''}" data-act="approved">Approve</button></div>
+        </div>`).join(''));
+      } catch (e) {
+        if (String(e.message) !== '401') { tile('needs', '—'); section('needs', [], ''); }
+      }
+      $('[data-list]', s).onclick = async (e) => {
+        const b = e.target.closest('button[data-act]'); if (!b) return;
+        const id = b.closest('[data-id]').dataset.id;
+        const err = $('[data-err]', s); err.hidden = true;
+        b.disabled = true;
+        try {
+          const r = await fetch('/api/confirmations', { method: 'PATCH', credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify({ id, status: b.dataset.act }) });
+          const body = await r.json().catch(() => ({}));
+          if (!r.ok) throw new Error(body.error || 'update failed');
+          await loadNeeds();
+          document.dispatchEvent(new Event('portal:refresh-badge'));
+        } catch (ex) { b.disabled = false; err.textContent = ex.message || 'Could not update.'; err.hidden = false; }
+      };
+    }
+
+    // Projects needing a decision
+    async function loadProjects() {
+      try {
+        const d = await getJson('/api/projects');
+        const list = d && !d.empty ? (d.projects || []).filter((p) => p.column === 'needs' || p.column === 'blocked') : [];
+        section('projects', list, list.map((p) => `<div class="row">
+          <div class="chk${p.column === 'blocked' ? ' p1' : ''}"></div>
+          <div class="body">
+            <div class="t">${esc(p.name)}${(p.reasons || []).length ? ` — ${esc(p.reasons.join(', '))}` : ''}</div>
+            <div class="m"><span class="badge wait">${p.column === 'blocked' ? 'Blocked' : 'Needs you'}</span><a href="/projects/">open board</a></div>
+          </div>
+        </div>`).join(''));
+      } catch (e) { if (String(e.message) !== '401') section('projects', [], ''); }
+    }
+
+    setSub(fmtToday());
+    loadTesla(); loadMail(); loadNeeds(); loadProjects();
+  })();
+  </script>
+</body>
+</html>
